@@ -39,6 +39,7 @@ export default{
         InsertGameSubjectRecord: platform + 'gameSubjectRecord/InsertGameSubjectRecord.json',
         passDetails: platform + 'gameSubjectRecord/passDetails.json',
 
+        addPoint: platform + 'gameplay/addPoint.json',
         cheerDetail: platform + 'gameplayercheer/details.json',
         gameComments: platform + 'gameplayercheer/commentList.json',
         enterpriseDetails: platform + 'gamesubjecttemplate/enterpriseDetails.json',

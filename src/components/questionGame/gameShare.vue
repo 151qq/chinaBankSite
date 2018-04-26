@@ -1,47 +1,35 @@
 <template>
-    <section class="gmBigBox">
-        <div class="person-message-box" :style="sharePersonBgStyle">
-            <div class="person-box">
-                <div class="attar-box">
-                    <img :src="gameUser.memberWechatImg">
-                </div>
-                <div :style="sharePersonStyle">
-                    {{gameUser.memberWechatNickname}}<br>
-                    <!-- XXX大师<br> -->
-                    第27名（120890）<br>
-                </div>
-            </div>
-            <div :style="shareFontStyle">
-                {{gameTemplate.shareThanksText}}
-            </div>
-        </div>
-
+    <section class="gmBigBox" :style="shareBgBox">
         <section class="gmBodyArea">
-            <div class="comment-game-box">
-                <comment :comment-url="'article-comment'" :comment-list="commentList"></comment>
+            <div class="share-box">
+                <div class="share-title">
+                    <img :src="gameData.eventPlanCover">
+                </div>
+                <div class="person-box">
+                    <div class="attar-box">
+                        <img class="bg-attar" src="/static/images/img-out.png">
+                        <img :style="shareAttarStyle" class="attar" :src="gameUser.memberWechatImg">
+                    </div>
+                    <div class="person">
+                        <div class="name-box">{{gameUser.memberWechatNickname}}</div>
+                        <div class="game-name"
+                            :style="shareNameBg"
+                            v-if="gameStop.isPass == '1' || gameStop.isPass == '0'">
+                            {{gameStop.isPass == '1' ? gateInfo.gatePassNickname : gateInfo.gateFailNickname}}
+                        </div>
+                        <div class="user-num">
+                            <img src="../../assets/images/ranking-icon.png">
+                            <div class="num-box">{{pointData.ranking}}名</div>
+                            <div>/共{{pointData.totalranking}}名</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ewm-box">
+                    <img src="/static/images/ewm.png">
+                    <span>长按二维码进入游戏</span>
+                </div>
             </div>
-        </section>
-        <section class="bottom-btn-box">
-            <router-link :style="gmShareBtn"
-                            :to="{
-                                name: 'game-start',
-                                query: {
-                                    enterpriseCode: $route.query.enterpriseCode,
-                                    eventCode: $route.query.eventCode,
-                                    gameCode: $route.query.gameCode,
-                                    agentId: $route.query.agentId,
-                                    appid: $route.query.appid,
-                                    S: $route.query.S,
-                                    sShareTo: $route.query.sShareTo,
-                                    C: $route.query.C,
-                                    cShareTo: $route.query.cShareTo,
-                                    T: $route.query.T,
-                                    tShareTo: $route.query.tShareTo,
-                                    spreadType: $route.query.spreadType
-                                }
-                            }">
-                {{gameTemplate.shareBtnFont}}
-            </router-link>
         </section>
     </section>
 </template>
@@ -50,13 +38,15 @@ import util from '../../utils/tools'
 import jsSdk from '../../utils/jsSdk'
 import comment from './comment'
 import templateMixin from '../../assets/common/gameTemplateMix'
-import { mapGetters } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 
 export default {
     data () {
         return {
+            commentList: [],
+            gateInfo: {},
             gameData: {},
-            commentList: []
+            gameStop: {}
         }
     },
     mixins: [templateMixin],
@@ -68,17 +58,85 @@ export default {
             gameUser: 'getGameUser',
             gameTemplate: 'getGameTemplate',
             gateList: 'getGateList',
-            gameInfo: 'getGameInfo'
+            gameInfo: 'getGameInfo',
+            pointData: 'getPointData'
         })
     },
     mounted () {
         this.getPointData()
-        this.getComments()
+        this.getGameData()
+        this.getGameStop()
+
+        // 当前关卡
+        for (var i = 0; i < this.gateList.length; i++) {
+            if (this.pointData.playerCurrentGate == this.gateList[i].gameGateCode) {
+                this.gateInfo = this.gateList[i]
+                break
+            }
+        }
+
+        console.log(this.gameTemplate, 'template')
     },
     methods: {
-        getPointData () {
+        ...mapActions([
+            'setPointData'
+        ]),
+        setLog (data) {
+            util.request({
+                method: 'post',
+                interface: 'customerGeneralLog',
+                data: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    customerCode: this.gameUser.customerCode,
+                    customerType: this.gameUser.customerType,
+                    interactionType: data.interactionType,
+                    interactionDesc: data.interactionDesc,
+                    interactionPrimeObject: data.primeObject,
+                    interactionSubObject: data.subObject,
+                    interactionOtherObject: data.otherObject
+                }
+            }).then(res => {})
+        },
+        getGameStop () {
+            util.request({
+                method: 'post',
+                interface: 'passDetails',
+                data: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    eventCode: this.$route.query.eventCode,
+                    gameCode: this.$route.query.gameCode,
+                    playerCode: this.gameUser.customerCode,
+                    gameSessionCode: this.$route.query.gameSessionCode,
+                    gameGateCode: this.$route.query.gameGateCode
+                }
+            }).then(res => {
+                if (res.result.success == '1') {
+                    this.gameStop = res.result.result
+                    this.getPointData()
+                } else {
+                    this.$message.error(res.result.message)
+                }
+            })
+        },
+        getGameData () {
             util.request({
                 method: 'get',
+                interface: 'eventInfoGet',
+                data: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    eventCode: this.$route.query.eventCode
+                }
+            }).then(res => {
+                if (res.result.success == '1') {
+                    this.gameData = res.result.result
+                } else {
+                    this.$message.error(res.result.message)
+                }
+            })
+        },
+        getPointData () {
+            util.request({
+                method: 'post',
                 interface: 'personalPoints',
                 data: {
                     enterpriseCode: this.$route.query.enterpriseCode,
@@ -88,22 +146,7 @@ export default {
                 }
             }).then(res => {
                 if (res.result.success == '1') {
-                    this.pointData = res.result.result
-                } else {
-                    this.$message.error(res.result.message)
-                }
-            })
-        },
-        getComments () {
-            util.request({
-                method: 'get',
-                interface: 'commentList',
-                data: {
-                    pageCode: this.$route.query.gameSessionCode
-                }
-            }).then(res => {
-                if (res.result.success == '1') {
-                    this.commentList = res.result.result
+                    this.setPointData(res.result.result)
                 } else {
                     this.$message.error(res.result.message)
                 }

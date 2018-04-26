@@ -101,7 +101,7 @@ export default {
                 memberCode: this.gameUser.customerCode,
                 templateCode: this.$route.query.templateCode,
                 attachments: this.commentData.attachments,
-                pageCode: this.$route.query.playerCheerCode
+                pageCode: this.$route.query.gameSessionCode
             }
 
             var customerInteractionLog = {
@@ -122,6 +122,7 @@ export default {
                 giftPoints: this.commentData.point,
                 playerCheerCode: this.$route.query.playerCheerCode,
                 gameSeesionCode: this.$route.query.gameSeesionCode,
+                gameGateCode: this.$route.query.gameGateCode,
                 commentInfo: commentInfo,
                 customerInteractionLog: customerInteractionLog
             }

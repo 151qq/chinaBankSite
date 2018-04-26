@@ -143,18 +143,13 @@
         </section>
         <section class="play-btn-box">
             
-            <template v-if="$route.query.gameType == 'happy' && this.gateInfo.gateCheatNumber > this.pointData.currentCheatNumber && this.gateInfo.cheatConsumePoint < this.pointData.playerGamePoint">
+            <template v-if="this.gateInfo.gateCheatNumber > this.pointData.currentCheatNumber && this.gateInfo.cheatConsumePoint < this.pointData.playerGamePoint">
                 <div class="play-btn" @click="goCheat">
                     <img src="../../assets/images/cheat-icon.png">
                     {{gameTemplate.playBtnOneFont}}
                 </div>
                 <span>|</span>
             </template>
-            <div class="play-btn" @click="goCheer">
-                <img src="../../assets/images/cheer-icon.png">
-                {{gameTemplate.playBtnTwoFont}}
-            </div>
-            <span>|</span>
             <div class="play-btn" @click="setAnwserRecord">
                 <img src="../../assets/images/next-icon.png">
                 {{gameTemplate.playBtnThreeFont}}
@@ -166,17 +161,11 @@
 import util from '../../utils/tools'
 import jsSdk from '../../utils/jsSdk'
 import templateMixin from '../../assets/common/gameTemplateMix'
-import { mapGetters } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 
 export default {
     data () {
         return {
-            pointData: {
-                playerCode: '',
-                playerCurrentGate: '',
-                playerGamePoint: '',
-                currentCheatNumber: ''
-            },
             gateInfo: {},
             questionList:  [],
             isGateTimer: true,
@@ -193,7 +182,8 @@ export default {
             questionLength: 0,
             nowQuestionIndex: 0,
             nowQuestion: {},
-            correctAnwser: []
+            correctAnwser: [],
+            gameSessionCode: ''
         }
     },
     mixins: [templateMixin],
@@ -212,36 +202,45 @@ export default {
             gameUser: 'getGameUser',
             gameTemplate: 'getGameTemplate',
             gateList: 'getGateList',
-            gameInfo: 'getGameInfo'
+            gameInfo: 'getGameInfo',
+            pointData: 'getPointData'
         })
     },
     mounted () {
-        // 获取题目列表
-        var questionData = sessionStorage.getItem('questionData')
-        if (questionData && JSON.parse(questionData).questions) {
-            var data = JSON.parse(questionData)
-            this.questionList = data.questions
-            this.questionLength = data.questions.length
-            this.nowQuestionIndex = data.index
-            this.defaultGateTime = data.defaultGateTime
-
-            this.setQuestion()
-        } else {
-            this.getQuestions()
-        }
-
+        this.getGameSessionCode()
+        this.getQuestions()
         this.getPointData()
 
         var logData = {
             interactionType: 'memberPlayGame',
             interactionDesc: '客户玩游戏',
-            primeObject: this.$route.query.gameCode,
-            subObject: this.gateInfo.gameGateCode,
-            otherObject: this.$route.query.gameSessionCode
+            primeObject: this.$route.query.eventCode,
+            subObject: this.$route.query.gameCode,
+            otherObject: this.gateInfo.gameGateCode
         }
         this.setLog(logData)
+
+        // 设置当前关卡的序号
+        if (this.pointData.playerCurrentGate) {
+            // 上一次玩到的关卡
+            for (var i = 0; i < this.gateList.length; i++) {
+                if (this.pointData.playerCurrentGate == this.gateList[i].gameGateCode) {
+                    this.nowGateIndex = i + 1
+                    break
+                }
+            }
+        } else {
+            // 第一次玩
+            this.nowGateIndex = 0
+        }
+
+        this.gateInfo = this.gateList[this.nowGateIndex]
+        this.defaultGateTime = this.gateInfo.gateTimeLimit
     },
     methods: {
+        ...mapActions([
+            'setPointData'
+        ]),
         setLog (data) {
             util.request({
                 method: 'post',
@@ -258,6 +257,19 @@ export default {
                 }
             }).then(res => {})
         },
+        getGameSessionCode () {
+            util.request({
+                method: 'get',
+                interface: 'getGameSessionCode',
+                data: {}
+            }).then(res => {
+                if (res.result.success == '1') {
+                    this.gameSessionCode = res.result.result
+                } else {
+                    this.$message.error(res.result.message)
+                }
+            })
+        },
         getPointData () {
             util.request({
                 method: 'post',
@@ -270,31 +282,7 @@ export default {
                 }
             }).then(res => {
                 if (res.result.success == '1') {
-                    this.pointData = res.result.result
-
-                    // 设置当前关卡的序号
-                    if (this.$route.query.gameType == 'happy') {
-                        if (this.pointData.playerCurrentGate) {
-                            // 上一次玩到的关卡
-                            for (var i = 0; i < this.gateList.length; i++) {
-                                if (this.pointData.playerCurrentGate == this.gateList[i].gameGateCode) {
-                                    this.nowGateIndex = i + 1
-                                    break
-                                }
-                            }
-                        } else {
-                            // 第一次玩
-                            this.nowGateIndex = 0
-                        }
-
-                        this.gateInfo = this.gateList[this.nowGateIndex]
-
-                        if (!this.defaultGateTime) {
-                            this.defaultGateTime = this.gateInfo.gateTimeLimit
-                        }
-                    } else if (this.$route.query.gameType == 'pk') {
-                        this.gateTime = this.gameInfo.gamePkTime
-                    }
+                    this.setPointData(res.result.result)
                 } else {
                     this.$message.error(res.result.message)
                 }
@@ -317,25 +305,40 @@ export default {
 
                     // 设置题目
                     this.setQuestion()
+                    this.setGateTime()
                 } else {
                     this.$message.error(res.result.message)
                 }
             })
         },
+        setGateTime () {
+            // 通关时间倒计时
+            if (!this.gateTimer && this.isGateTimer) {
+                this.gateTime = this.defaultGateTime
+                this.gateTimer = setInterval(() => {
+                    if (!this.gateTime) {
+                        this.delayTimer = setTimeout(() => {
+                            this.nowQuestionIndex = this.questionLength
+                            this.setQuestion()
+                        }, this.delayTime)
+                        clearInterval(this.gateTimer)
+                        this.gateTimer = null
+                        return
+                    }
+                    
+                    this.gateTime--
+                }, 1000)
+            }
+        },
         setQuestion () {
             if (this.nowQuestionIndex >= this.questionLength) {
-                var pathName = 'game-stop'
-                if (this.$route.query.gameType == 'pk') {
-                    pathName = 'game-pk'
-                }
-
                 var pathData = {
-                    name: pathName,
+                    name: 'game-stop',
                     query: {
                         enterpriseCode: this.$route.query.enterpriseCode,
                         eventCode: this.$route.query.eventCode,
                         gameCode: this.$route.query.gameCode,
-                        gameSessionCode: this.$route.query.gameSessionCode,
+                        gameSessionCode: this.gameSessionCode,
                         gameGateCode: this.gateInfo.gameGateCode,
                         agentId: this.$route.query.agentId,
                         appid: this.$route.query.appid,
@@ -349,38 +352,18 @@ export default {
                     }
                 }
 
-                // 挑战参数
-                if (this.$route.query.gameType == 'pk' && this.$route.query.pkPlay == '1') {
-                    pathData.query.pkPlay = '1'
+                if (this.gateTimer && this.isGateTimer) {
+                    clearInterval(this.gateTimer)
                 }
 
                 this.$router.replace(pathData)
             } else {
                 this.nowQuestion = this.questionList[this.nowQuestionIndex]
 
-                // 通关时间倒计时
-                // if (!this.gateTimer && this.isGateTimer) {
-                //     this.gateTime = this.defaultGateTime
-                //     this.gateTimer = setInterval(() => {
-                //   
-                //         if (!this.gateTime) {
-                //             this.delayTimer = setTimeout(() => {
-                //                 this.nowQuestionIndex = this.questionLength
-                //                 this.setQuestion()
-                //             }, this.delayTime)
-                //             clearInterval(this.gateTimer)
-                //             this.gateTimer = null
-                //         }
-                //         
-                //         this.gateTime--
-                //     }, 1000)
-                // }
-
                 // 答题计时器
                 if (!this.anwserTimer && this.isAnwserTimer) {
                     this.anwserTime = this.defaultAnwserTime
                     this.anwserTimer = setInterval(() => {
-                        this.anwserTime--
                         if (!this.anwserTime) {
                             this.delayTimer = setTimeout(() => {
                                 this.nowQuestionIndex++
@@ -392,7 +375,9 @@ export default {
 
                             clearInterval(this.anwserTimer)
                             this.anwserTimer = null
+                            return
                         }
+                        this.anwserTime--
                     }, 1000)
                 }
             }
@@ -428,7 +413,7 @@ export default {
                     enterpriseCode: this.$route.query.enterpriseCode,
                     gameCode: this.$route.query.gameCode,
                     playerCode: this.gameUser.customerCode,
-                    gameSessionCode: this.$route.query.gameSessionCode,
+                    gameSessionCode: this.gameSessionCode,
                     playerType: '2',
                     gameGateCode: this.gateInfo.gameGateCode,
                     subjectCode: this.nowQuestion.Subject.subjectCode,
@@ -451,15 +436,16 @@ export default {
                 playerCode: this.gameUser.customerCode,
                 gameGateCode: this.gateInfo.gameGateCode,
                 subjectCode: this.nowQuestion.Subject.subjectCode,
+                gameSessionCode: this.gameSessionCode,
                 customerInteractionLog: {
                     enterpriseCode: this.$route.query.enterpriseCode,
                     customerCode: this.gameUser.customerCode,
                     customerType: this.gameUser.customerType,
                     interactionType: 'memberCheatInGame',
                     interactionDesc: '作弊成功,用户扣减' + this.gateInfo.cheatConsumePoint + '分!',
-                    interactionPrimeObject: this.$route.query.gameCode,
-                    interactionSubObject: this.gateInfo.gameGateCode,
-                    interactionOtherObject: this.nowQuestion.Subject.subjectCode
+                    interactionPrimeObject: this.$route.query.eventCode,
+                    interactionSubObject: this.$route.query.gameCode,
+                    interactionOtherObject: this.gateInfo.gameGateCode
                 }
             }
 
@@ -471,69 +457,6 @@ export default {
                 if (res.result.success == '1') {
                     this.getPointData()
                     this.correctAnwser = res.result.result.split(',')
-                } else {
-                    this.$message.error(res.result.message)
-                }
-            })
-        },
-        goCheer () {
-            var formData = {
-                enterpriseCode: this.$route.query.enterpriseCode,
-                eventCode: this.$route.query.eventCode,
-                gameCode: this.$route.query.gameCode,
-                gamePlayerCode: this.gameUser.customerCode,
-                gamePlayerType: '2',
-                gameGateCode: this.gateInfo.gameGateCode,
-                subjectCode: this.nowQuestion.Subject.subjectCode,
-                customerInteractionLog: {
-                    enterpriseCode: this.$route.query.enterpriseCode,
-                    customerCode: this.gameUser.customerCode,
-                    customerType: this.gameUser.customerType,
-                    interactionType: 'memberTalkInGame',
-                    interactionDesc: '客户发起助威',
-                    interactionPrimeObject: this.$route.query.gameCode,
-                    interactionSubObject: this.gateInfo.gameGateCode,
-                    interactionOtherObject: this.$route.query.gameSessionCode
-                }
-            }
-
-            util.request({
-                method: 'post',
-                interface: 'creatCheer',
-                data: formData
-            }).then(res => {
-                if (res.result.success == '1') {
-                    this.correctAnwser = res.result.result
-
-                    // 保存题目
-                    sessionStorage.setItem('questionData', JSON.stringify({
-                        questions: this.questionList,
-                        index: this.nowQuestionIndex,
-                        defaultGateTime: this.gateTime,
-                        defaultAnwserTime: this.anwserTime
-                    }))
-
-                    var pathData = {
-                        name: 'game-help',
-                        query: {
-                            enterpriseCode: this.$route.query.enterpriseCode,
-                            eventCode: this.$route.query.eventCode,
-                            gameCode: this.$route.query.gameCode,
-                            gameSessionCode: this.$route.query.gameSessionCode,
-                            playerCheerCode: res.result.result,
-                            agentId: this.$route.query.agentId,
-                            appid: this.$route.query.appid,
-                            S: this.$route.query.S,
-                            sShareTo: this.$route.query.sShareTo,
-                            C: this.$route.query.C,
-                            cShareTo: this.$route.query.cShareTo,
-                            T: this.$route.query.T,
-                            tShareTo: this.$route.query.tShareTo,
-                            spreadType: this.$route.query.spreadType
-                        }
-                    }
-
-                    this.$router.push(pathData)
                 } else {
                     this.$message.error(res.result.message)
                 }

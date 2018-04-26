@@ -106,6 +106,7 @@ export default {
 
                     clearInterval(this.playTimer)
                     this.playTimer = null
+                    return
                 }
                 
                 this.playTime--
@@ -152,7 +153,7 @@ export default {
                 method: 'get',
                 interface: 'gameComments',
                 data: {
-                    pageCode: this.$route.query.playerCheerCode
+                    pageCode: this.$route.query.gameSessionCode
                 }
             }).then(res => {
                 if (res.result.success == '1') {

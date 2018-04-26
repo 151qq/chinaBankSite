@@ -34,6 +34,7 @@ const jsSdk = {
                     nonceStr: nonceStr,
                     signature: res.result.result,
                     jsApiList: [
+                        'addCard',
                         'onMenuShareTimeline',
                         'onMenuShareAppMessage',
                         'onMenuShareQQ',

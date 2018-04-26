@@ -1,6 +1,6 @@
 <template>
     <section>
-        <router-view v-if="isTemplate && isGate"></router-view>
+        <router-view v-if="isTemplate && isGate && isPoint"></router-view>
         <div v-if="isEnterprise" class="null-page">您不能参与游戏！</div>
     </section>
 </template>
@@ -13,7 +13,8 @@ export default {
     data () {
         return {
             isTemplate: false,
-            isGate: false
+            isGate: false,
+            isPoint: false
         }
     },
     mounted () {
@@ -22,30 +23,50 @@ export default {
                 return false
             }
 
-            // 判断用户类型todo
             this.getTemplate()
             this.getGates()
             this.getGameInfo()
+            this.getPointData()
 
             jsSdk.init()
         })
     },
     computed: {
         ...mapGetters({
-            gameUser: 'getGameUser'
+            gameUser: 'getGameUser',
+            gameInfo: 'getGameInfo'
         }),
         isEnterprise () {
             var types = ['enterprise_channel_open', 'enterprise_user_open']
-            // return types.indexOf(this.gameuser.openType) > -1
-            return false
+            return this.gameUser.openType && types.indexOf(this.gameUser.openType) > -1
         }
     },
     methods: {
         ...mapActions([
             'setGateList',
             'setGameInfo',
-            'setGameTemplate'
+            'setGameTemplate',
+            'setPointData'
         ]),
+        getPointData () {
+            util.request({
+                method: 'post',
+                interface: 'personalPoints',
+                data: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    eventCode: this.$route.query.eventCode,
+                    gamePlayerCode: this.gameUser.customerCode,
+                    gameCode: this.$route.query.gameCode
+                }
+            }).then(res => {
+                if (res.result.success == '1') {
+                    this.setPointData(res.result.result)
+                    this.isPoint = true
+                } else {
+                    this.$message.error(res.result.message)
+                }
+            })
+        },
         getTemplate () {
             util.request({
                 method: 'get',
@@ -84,22 +105,19 @@ export default {
                     var title = '您的好友已上线！'
                     var desc = '答题答到嘴软，数钱数到手抽'
 
-                    if (this.$route.name == 'game-help') {
-                       link = location.origin + '/questionGame/gameHelp?' + queryList.join('&')
-                    }
-
                     var _self = this
 
                     var shareData = {
                         title: title,
                         desc: desc,
                         link: link,
-                        imgUrl: this.gameUser.memberWechatImg,
+                        imgUrl: _self.gameUser.memberWechatImg,
                         success (data) {
-                            this.$message({
+                            _self.$message({
                                 message: '恭喜你，分享成功！',
                                 type: 'success'
                             })
+                            _self.addPoint()
                         },
                         cancel (data) {}
                     }
@@ -140,6 +158,29 @@ export default {
             }).then(res => {
                 if (res.result.success == '1') {
                     this.setGameInfo(res.result.result[0])
+                } else {
+                    this.$message.error(res.result.message)
+                }
+            })
+        },
+        addPoint () {
+            util.request({
+                method: 'get',
+                interface: 'addPoint',
+                data: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    eventCode: this.$route.query.eventCode,
+                    gameCode: this.$route.query.gameCode,
+                    playerCode: this.gameUser.customerCode,
+                    gamePoint: this.gameInfo.gameSharePoint,
+                    gameGateCode: this.$route.query.gameGateCode,
+                    gameSessionCode: this.$route.query.gameSessionCode,
+                    playerType: '2',
+                    pointChangeDesc: '分享增加积分'
+                }
+            }).then(res => {
+                if (res.result.success == '1') {
+                    this.getPointData
                 } else {
                     this.$message.error(res.result.message)
                 }

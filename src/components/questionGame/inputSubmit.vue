@@ -88,7 +88,7 @@ export default {
             }
 
             if (this.$route.query.playerCheerCode) {
-                formData.pageCode = this.$route.query.playerCheerCode
+                formData.pageCode = this.$route.query.gameSessionCode
             }
 
             util.request({

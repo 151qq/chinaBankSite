@@ -206,6 +206,30 @@ export default {
 
             return styleData
         },
+        shareBgBox () {
+            var styleData = {
+                'background-image': 'url(' + this.gameTemplate.shareBigBg + ')'
+            }
+
+            return styleData
+        },
+        shareNameBg () {
+            var styleData = {
+                'background-image': 'url(' + this.gameTemplate.shareNameBg + ')',
+                'line-height': this.gameTemplate.shareNameLineHeight + 'px'
+            }
+
+            return styleData
+        },
+        shareAttarStyle () {
+            var styleData = {
+                'width': this.gameTemplate.shareAttarHeight + 'px',
+                'height': this.gameTemplate.shareAttarHeight + 'px',
+                'margin-top': this.gameTemplate.shareAttarMarginTop + 'px'
+            }
+
+            return styleData
+        },
         sharePersonBgStyle () {
             var styleData = {
                 'background-image': 'url(' + this.gameTemplate.sharePersonBg + ')'

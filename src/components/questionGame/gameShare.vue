@@ -26,7 +26,7 @@
                 </div>
 
                 <div class="ewm-box">
-                    <img src="/static/images/ewm.png">
+                    <img :src="qRcode">
                     <span>长按二维码进入游戏</span>
                 </div>
             </div>
@@ -46,7 +46,8 @@ export default {
             commentList: [],
             gateInfo: {},
             gameData: {},
-            gameStop: {}
+            gameStop: {},
+            qRcode: ''
         }
     },
     mixins: [templateMixin],
@@ -66,6 +67,7 @@ export default {
         this.getPointData()
         this.getGameData()
         this.getGameStop()
+        this.getQRcode()
 
         // 当前关卡
         for (var i = 0; i < this.gateList.length; i++) {
@@ -96,6 +98,24 @@ export default {
                     interactionOtherObject: data.otherObject
                 }
             }).then(res => {})
+        },
+        getQRcode () {
+            util.request({
+                method: 'post',
+                interface: 'generateQRcode',
+                data: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    sceneId: 'marketing_ad_type_3',
+                    sceneStr: this.gameUser.customerCode,
+                    appId: this.$route.query.appid
+                }
+            }).then(res => {
+                if (res.result.success == '1') {
+                    this.qRcode = res.result.result
+                } else {
+                    this.$message.error(res.result.message)
+                }
+            })
         },
         getGameStop () {
             util.request({

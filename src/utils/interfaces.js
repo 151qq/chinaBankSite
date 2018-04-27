@@ -51,6 +51,7 @@ export default{
         cheerHelp: platform + 'gameplayercheer/cheer.json',
         gameCheat: platform + 'gameSubjectRecord/cheat.json',
         getGameSessionCode: platform + 'game/getGameSessionCode.json',
+        generateQRcode: platform + 'generateQRcode.json',
 
         /**
         * 推广 get

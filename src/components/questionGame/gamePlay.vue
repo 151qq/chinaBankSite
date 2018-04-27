@@ -65,6 +65,7 @@
                         v-for="(anwser, index) in nowQuestion.Option">
 
                         <div class="select-box"
+                                @click="setAnwser(anwser)"
                                 :style="selectBtnLineHeight">
                             <template v-if="anwser.subjectChooseType == '1'">
                                 <img v-if="correctAnwser.indexOf(anwser.subjectCode) > -1"

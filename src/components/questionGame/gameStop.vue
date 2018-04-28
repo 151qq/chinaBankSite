@@ -1,90 +1,90 @@
 <template>
     <section class="gmBigBox">
-        <div class="person-message-box" :style="stopPersonBgStyle">
-            <div class="person-box">
-                <div class="attar-box">
-                    <img :src="gameUser.memberWechatImg">
+            <div class="person-message-box" :style="stopPersonBgStyle">
+                <div class="person-box">
+                    <div class="attar-box">
+                        <img :src="gameUser.memberWechatImg">
+                    </div>
+                    <div :style="personStyle">
+                        {{gameUser.memberWechatNickname}}<br>
+                        {{gameData.isPass == '1' ? gateInfo.gatePassNickname : gateInfo.gateFailNickname}}<br>
+                        第{{pointData.ranking}}名（{{pointData.totalranking}}）<br>
+                    </div>
                 </div>
-                <div :style="personStyle">
-                    {{gameUser.memberWechatNickname}}<br>
-                    {{gameData.isPass == '1' ? gateInfo.gatePassNickname : gateInfo.gateFailNickname}}<br>
-                    第{{pointData.ranking}}名（{{pointData.totalranking}}）<br>
+                <div :style="stopFontStyle">
+                    {{gameData.isPass == '1' ? gameTemplate.stopSuccessText : gameTemplate.stopFailText}}
                 </div>
             </div>
-            <div :style="stopFontStyle">
-                {{gameData.isPass == '1' ? gameTemplate.stopSuccessText : gameTemplate.stopFailText}}
-            </div>
-        </div>
 
-        <section class="gmBodyArea">
-            <div class="money-box">
-                您新增积分{{gameData.RewardPoint ? gameData.RewardPoint : 0}}分/<span>总积分{{pointData.playerGamePoint}}</span>
-                <p>分享战绩可以获得更多积分</p>
-            </div>
+            <section class="gmBodyArea">
+                <div class="money-box">
+                    您新增积分{{gameData.RewardPoint ? gameData.RewardPoint : 0}}分/<span>总积分{{pointData.playerGamePoint}}</span>
+                    <p>分享战绩可以获得更多积分</p>
+                </div>
 
-            <a class="honor-box" v-if="gameData.GameGateRewardCash != ''">
-                <span class="money-num">¥ {{gameData.GameGateRewardCash}}</span>
-                <span class="btn-font">
-                    <img src="../../assets/images/ticket-icon.png">
-                    领取奖励
-                </span>
-            </a>
+                <a class="honor-box" v-if="gameData.GameGateRewardCash != ''">
+                    <span class="money-num">¥ {{gameData.GameGateRewardCash}}</span>
+                    <span class="btn-font">
+                        <img src="../../assets/images/ticket-icon.png">
+                        领取奖励
+                    </span>
+                </a>
 
-            <a class="honor-box"
-                @click="gotoCoupon"
-                v-if="gameData.GameGateRewardCoupon && gameData.GameGateRewardCoupon.couponCode">
-                <span class="money-num">券</span>
-                <span class="btn-font">
-                    <img src="../../assets/images/ticket-icon.png">
-                    领取奖励
-                </span>
-            </a>
-        </section>
-        <section class="bottom-btn-box">
-            <router-link :style="gmStopBtn"
-                            v-if="gateList[gateList.length - 1].gameGateCode != pointData.playerCurrentGate"
-                            :to="{
-                                name: 'game-play',
-                                query: {
-                                    enterpriseCode: $route.query.enterpriseCode,
-                                    eventCode: $route.query.eventCode,
-                                    gameCode: $route.query.gameCode,
-                                    agentId: $route.query.agentId,
-                                    appid: $route.query.appid,
-                                    S: $route.query.S,
-                                    sShareTo: $route.query.sShareTo,
-                                    C: $route.query.C,
-                                    cShareTo: $route.query.cShareTo,
-                                    T: $route.query.T,
-                                    tShareTo: $route.query.tShareTo,
-                                    spreadType: $route.query.spreadType
-                                }
-                            }">
-                {{gameData.isPass == '1' ? gameTemplate.stopBtnOneFont : '再来一次'}}
-            </router-link>
-            <router-link :style="gmStopBtn"
-                            :to="{
-                                name: 'game-share',
-                                query: {
-                                    enterpriseCode: $route.query.enterpriseCode,
-                                    eventCode: $route.query.eventCode,
-                                    gameCode: $route.query.gameCode,
-                                    gameSessionCode: $route.query.gameSessionCode,
-                                    gameType: $route.query.gameType,
-                                    agentId: $route.query.agentId,
-                                    appid: $route.query.appid,
-                                    S: $route.query.S,
-                                    sShareTo: $route.query.sShareTo,
-                                    C: $route.query.C,
-                                    cShareTo: $route.query.cShareTo,
-                                    T: $route.query.T,
-                                    tShareTo: $route.query.tShareTo,
-                                    spreadType: $route.query.spreadType
-                                }
-                            }">
-                {{gameTemplate.stopBtnTwoFont}}
-            </router-link>
-        </section>
+                <a class="honor-box"
+                    @click="gotoCoupon"
+                    v-if="gameData.GameGateRewardCoupon && gameData.GameGateRewardCoupon.couponCode">
+                    <span class="money-num">券</span>
+                    <span class="btn-font">
+                        <img src="../../assets/images/ticket-icon.png">
+                        领取奖励
+                    </span>
+                </a>
+            </section>
+            <section class="bottom-btn-box" v-if="isLoad">
+                <router-link :style="gmStopBtn"
+                                v-if="gateList[gateList.length - 1].gameGateCode != pointData.playerCurrentGate"
+                                :to="{
+                                    name: 'game-play',
+                                    query: {
+                                        enterpriseCode: $route.query.enterpriseCode,
+                                        eventCode: $route.query.eventCode,
+                                        gameCode: $route.query.gameCode,
+                                        agentId: $route.query.agentId,
+                                        appid: $route.query.appid,
+                                        S: $route.query.S,
+                                        sShareTo: $route.query.sShareTo,
+                                        C: $route.query.C,
+                                        cShareTo: $route.query.cShareTo,
+                                        T: $route.query.T,
+                                        tShareTo: $route.query.tShareTo,
+                                        spreadType: $route.query.spreadType
+                                    }
+                                }">
+                    {{gameData.isPass == '1' ? gameTemplate.stopBtnOneFont : '再来一次'}}
+                </router-link>
+                <router-link :style="gmStopBtn"
+                                :to="{
+                                    name: 'game-share',
+                                    query: {
+                                        enterpriseCode: $route.query.enterpriseCode,
+                                        eventCode: $route.query.eventCode,
+                                        gameCode: $route.query.gameCode,
+                                        gameSessionCode: $route.query.gameSessionCode,
+                                        gameType: $route.query.gameType,
+                                        agentId: $route.query.agentId,
+                                        appid: $route.query.appid,
+                                        S: $route.query.S,
+                                        sShareTo: $route.query.sShareTo,
+                                        C: $route.query.C,
+                                        cShareTo: $route.query.cShareTo,
+                                        T: $route.query.T,
+                                        tShareTo: $route.query.tShareTo,
+                                        spreadType: $route.query.spreadType
+                                    }
+                                }">
+                    {{gameTemplate.stopBtnTwoFont}}
+                </router-link>
+            </section>
     </section>
 </template>
 <script>
@@ -96,6 +96,7 @@ import { mapGetters, mapActions } from 'vuex'
 export default {
     data () {
         return {
+            isLoad: false,
             gameData: {},
             gateInfo: {}
         }
@@ -159,6 +160,7 @@ export default {
             }).then(res => {
                 if (res.result.success == '1') {
                     this.gameData = res.result.result
+                    this.isLoad = true
                     this.getPointData()
                 } else {
                     this.$message.error(res.result.message)
@@ -223,17 +225,24 @@ export default {
             })
         },
         gotoCoupon () {
-            util.getUser(() => {
-                jsSdk.addCard({
-                    cardList: [{
-                        cardId: '',
-                        cardExt: ''
-                    }],
-                    success: function (res) {
-                        console.log(res)
-                    }
-                })
-            }, 'snsapi_userinfo')
+            if (this.gameUser.customerType == '1') {
+                this.getCoupon()
+            } else {
+                util.getUser(() => {
+                    this.getCoupon()
+                }, 'snsapi_userinfo')
+            }
+        },
+        getCoupon () {
+            window.wx.addCard({
+                cardList: [{
+                    cardId: this.gameData.GameGateRewardCoupon.couponWechatId,
+                    cardExt: this.gameData.GameGateRewardCoupon.couponDescription
+                }],
+                success: function (res) {
+                    console.log(res)
+                }
+            })
         }
     }
 }

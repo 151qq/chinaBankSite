@@ -1,9 +1,11 @@
 <template>
     <section class="gmBigBox" :style="gmBgBox">
-        <div class="ar-title" :style="gmTitle" v-html="gameData.eventPlanTitle"></div>
-        <div class="game-desc-box">游戏说明</div>
+        <div class="ar-title">
+            <img src="gameData.eventPlanCover">
+        </div>
+        <div class="game-desc-box" v-if="gameData.eventPlanTitle">游戏说明</div>
         <section class="ar-text-body" :style="gmContent" v-html="gameData.eventPlanDesc"></section>
-        <section class="start-btn-box">
+        <section class="start-btn-box" v-if="gameData.eventPlanTitle">
             <span :style="gmStartBtnTwo" @click="goToPlay">
                 {{gameTemplate.startBtnTwoFont}}
             </span>
@@ -227,5 +229,3 @@ export default {
     }
 }
 </script>
-<style lang="scss">
-</style>

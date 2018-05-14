@@ -92,7 +92,7 @@ export default {
 
             var link = location.origin + '/questionGame/gameShare?' + queryList.join('&') + '&playerCode=' + this.gameUser.customerCode
             var title = this.gameData.eventPlanTitle.replace(/<.*?>/g, '')
-            var desc = '我正在玩工行的答题游戏，真是烧脑，你也来测试吧'
+            var desc = '我在玩答题冲大奖，根本停不下来，你也来试试吧～'
 
             var _self = this
 

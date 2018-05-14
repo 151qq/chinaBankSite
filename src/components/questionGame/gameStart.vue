@@ -78,6 +78,8 @@ export default {
                     break
                 }
             }
+        } else {
+            this.gateInfo = this.gateList[0]
         }
     },
     methods: {

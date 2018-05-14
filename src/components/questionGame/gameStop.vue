@@ -370,6 +370,8 @@ export default {
                                     break
                                 }
                             }
+                        } else {
+                            this.nextPlayGate = this.gateList[0]
                         }
 
                         if (!this.nextPlayGate) {

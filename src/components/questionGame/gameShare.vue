@@ -1,5 +1,5 @@
 <template>
-    <section class="gmBigBox" :style="shareBgBox">
+    <section class="gmBigBox gmShare">
         <section class="gmBodyArea">
             <div class="share-box">
                 <div class="share-title">
@@ -7,27 +7,22 @@
                 </div>
                 <div class="person-box">
                     <div class="attar-box">
-                        <img class="bg-attar" src="/static/images/img-out.png">
-                        <img :style="shareAttarStyle" class="attar" :src="gameUser.memberWechatImg">
+                        <img class="bg-attar" src="/static/images/attar-out.png">
+                        <img class="attar" :src="scoreData.customerWechatImg">
                     </div>
                     <div class="person">
-                        <div class="name-box">{{gameUser.memberWechatNickname}}</div>
-                        <div class="game-name"
-                            :style="shareNameBg"
-                            v-if="gameStop.isPass == '1' || gameStop.isPass == '0'">
-                            {{gameStop.isPass == '1' ? gateInfo.gatePassNickname : gateInfo.gateFailNickname}}
-                        </div>
+                        <div class="name-box">{{scoreData.customerWechatNickname}}</div>
                         <div class="user-num">
-                            <img src="../../assets/images/ranking-icon.png">
-                            <div class="num-box">{{pointData.ranking}}名</div>
-                            <div>/共{{pointData.totalranking}}名</div>
+                            共答了{{scoreData.sumSubjectNum}}道题<br>
+                            获得{{scoreData.sumTotalValue}}积分
                         </div>
                     </div>
-                </div>
 
-                <div class="ewm-box">
-                    <img :src="qRcode">
-                    <span>长按二维码进入游戏</span>
+                    <div class="ewm-box">
+                        <img :src="qRcode">
+                        <img src="/static/images/figer-icon.png">
+                        <span class="ewm-mess">长按二维码进入游戏</span>
+                    </div>
                 </div>
             </div>
         </section>
@@ -36,53 +31,40 @@
 <script>
 import util from '../../utils/tools'
 import jsSdk from '../../utils/jsSdk'
-import comment from './comment'
-import templateMixin from '../../assets/common/gameTemplateMix'
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters } from 'vuex'
 
 export default {
     data () {
         return {
-            commentList: [],
             gateInfo: {},
-            gameData: {},
-            gameStop: {},
+            scoreData: {},
             qRcode: ''
         }
-    },
-    mixins: [templateMixin],
-    filters: {
-        formatDate: util.formatDate
     },
     computed: {
         ...mapGetters({
             gameUser: 'getGameUser',
+            gameData: 'getGameData',
             gameTemplate: 'getGameTemplate',
-            gateList: 'getGateList',
-            gameInfo: 'getGameInfo',
-            pointData: 'getPointData'
+            gateList: 'getGateList'
         })
     },
     mounted () {
-        this.getPointData()
-        this.getGameData()
-        this.getGameStop()
         this.getQRcode()
+
+        setTimeout(() => {
+            this.getScores()
+        }, 0)
 
         // 当前关卡
         for (var i = 0; i < this.gateList.length; i++) {
-            if (this.pointData.playerCurrentGate == this.gateList[i].gameGateCode) {
+            if (this.$route.query.gameGateCode == this.gateList[i].gameGateCode) {
                 this.gateInfo = this.gateList[i]
                 break
             }
         }
-
-        console.log(this.gameTemplate, 'template')
     },
     methods: {
-        ...mapActions([
-            'setPointData'
-        ]),
         setLog (data) {
             util.request({
                 method: 'post',
@@ -99,13 +81,28 @@ export default {
                 }
             }).then(res => {})
         },
+        getScores () {
+            util.request({
+                method: 'get',
+                interface: 'playerscore',
+                data: {
+                    playerCode: this.$route.query.playerCode
+                }
+            }).then(res => {
+                if (res.result.success == '1') {
+                    this.scoreData = res.result.result
+                } else {
+                    this.$message.error(res.result.message)
+                }
+            })
+        },
         getQRcode () {
             util.request({
                 method: 'post',
                 interface: 'generateQRcode',
                 data: {
                     enterpriseCode: this.$route.query.enterpriseCode,
-                    sceneId: 'marketing_ad_type_3',
+                    sceneId: 'marketing_ad_type_4',
                     sceneStr: this.gameUser.customerCode,
                     appId: this.$route.query.appid
                 }
@@ -116,67 +113,7 @@ export default {
                     this.$message.error(res.result.message)
                 }
             })
-        },
-        getGameStop () {
-            util.request({
-                method: 'post',
-                interface: 'passDetails',
-                data: {
-                    enterpriseCode: this.$route.query.enterpriseCode,
-                    eventCode: this.$route.query.eventCode,
-                    gameCode: this.$route.query.gameCode,
-                    playerCode: this.gameUser.customerCode,
-                    gameSessionCode: this.$route.query.gameSessionCode,
-                    gameGateCode: this.$route.query.gameGateCode
-                }
-            }).then(res => {
-                if (res.result.success == '1') {
-                    this.gameStop = res.result.result
-                    this.getPointData()
-                } else {
-                    this.$message.error(res.result.message)
-                }
-            })
-        },
-        getGameData () {
-            util.request({
-                method: 'get',
-                interface: 'eventInfoGet',
-                data: {
-                    enterpriseCode: this.$route.query.enterpriseCode,
-                    eventCode: this.$route.query.eventCode
-                }
-            }).then(res => {
-                if (res.result.success == '1') {
-                    this.gameData = res.result.result
-                } else {
-                    this.$message.error(res.result.message)
-                }
-            })
-        },
-        getPointData () {
-            util.request({
-                method: 'post',
-                interface: 'personalPoints',
-                data: {
-                    enterpriseCode: this.$route.query.enterpriseCode,
-                    eventCode: this.$route.query.eventCode,
-                    gamePlayerCode: this.gameUser.customerCode,
-                    gameCode: this.$route.query.gameCode
-                }
-            }).then(res => {
-                if (res.result.success == '1') {
-                    this.setPointData(res.result.result)
-                } else {
-                    this.$message.error(res.result.message)
-                }
-            })
         }
-    },
-    components: {
-        comment
     }
 }
 </script>
-<style lang="scss">
-</style>

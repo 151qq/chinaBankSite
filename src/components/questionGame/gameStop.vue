@@ -1,90 +1,137 @@
 <template>
-    <section class="gmBigBox">
-            <div class="person-message-box" :style="stopPersonBgStyle">
-                <div class="person-box">
-                    <div class="attar-box">
-                        <img :src="gameUser.memberWechatImg">
+    <section>
+        <section class="check-gif-box" v-if="isAnimate">
+            <img src="/static/images/check-git.gif">
+            <span>结果计算中......</span>
+        </section>
+        
+        <section class="gmBigBox">
+                <div class="person-message-box" :style="stopPersonBgStyle">
+                    <div class="person-box">
+                        <div class="attar-box">
+                            <img :src="gameUser.memberWechatImg">
+                        </div>
+                        <div :style="personStyle">
+                            {{gameUser.memberWechatNickname}}<br>
+                            您共获得{{scoreData.sumTotalValue}}分<br>
+                            您已经回答了{{scoreData.sumSubjectNum}}条题目<br>
+                        </div>
                     </div>
-                    <div :style="personStyle">
-                        {{gameUser.memberWechatNickname}}<br>
-                        {{gameData.isPass == '1' ? gateInfo.gatePassNickname : gateInfo.gateFailNickname}}<br>
-                        第{{pointData.ranking}}名（{{pointData.totalranking}}）<br>
+                    <div v-if="isLoad" :style="stopFontStyle">
+                        {{gameData.isPass == '1' ? '成功通关' : '通关失败'}}
                     </div>
                 </div>
-                <div :style="stopFontStyle">
-                    {{gameData.isPass == '1' ? gameTemplate.stopSuccessText : gameTemplate.stopFailText}}
-                </div>
+
+                <section class="gmBodyArea" v-if="isLoad">
+                    <div class="money-box">
+                        <p>分享战绩再次闯关</p>
+                    </div>
+                    <template v-if="isNull">
+                        <a class="no-gift-box">
+                            <img src="/static/images/no-hornor.png">
+                            <span class="btn-font">
+                                非常遗憾，再接再厉！
+                            </span>
+                        </a>
+                    </template>
+                    
+                    <template v-if="!isNull">
+                        <template v-if="isPass">
+                            <a class="click-box" v-if="!hasAward">
+                                <img v-if="!isClick" @click="getRewardMess" src="/static/images/gift-switch.jpg">
+                                <span class="btn-font" v-if="!isClick" @click="getRewardMess">
+                                    点击摇奖
+                                </span>
+                                <img v-if="isClick" src="/static/images/gift-door.gif">
+                            </a>
+
+                            <a class="no-gift-box" v-if="hasAward">
+                                <img src="/static/images/no-score.png">
+                                <span class="btn-font">
+                                    很遗憾，未中奖！
+                                </span>
+                                <span class="mess-font">
+                                    快去继续答题，获得更多抽奖机会吧！
+                                </span>
+                            </a>
+                        </template>
+                    </template>
+                </section>
+                <section class="bottom-btn-box" v-if="isLoad">
+                    <a :style="gmStopBtn" @click="goToPlay">
+                        {{gameData.isPass == '1' ? gameTemplate.stopBtnOneFont : '再来一次'}}
+                    </a>
+                    <router-link :style="gmStopBtn"
+                                    :to="{
+                                        name: 'game-share',
+                                        query: {
+                                            enterpriseCode: $route.query.enterpriseCode,
+                                            eventCode: $route.query.eventCode,
+                                            gameCode: $route.query.gameCode,
+                                            gameSessionCode: $route.query.gameSessionCode,
+                                            gameGateCode: $route.query.gameGateCode,
+                                            gameType: $route.query.gameType,
+                                            agentId: $route.query.agentId,
+                                            appid: $route.query.appid,
+                                            playerCode: gameUser.customerCode,
+                                            S: $route.query.S,
+                                            sShareTo: $route.query.sShareTo,
+                                            C: $route.query.C,
+                                            cShareTo: $route.query.cShareTo,
+                                            T: $route.query.T,
+                                            tShareTo: $route.query.tShareTo,
+                                            spreadType: $route.query.spreadType
+                                        }
+                                    }">
+                        {{gameTemplate.stopBtnTwoFont}}
+                    </router-link>
+                </section>
+        </section>
+
+        <section class="game-hornor-box" v-if="isCanGet">
+            <div class="black-bg" @click.self="isCanGet = false"></div>
+            <img class="bg-img" src="/static/images/hornor-bg.png">
+
+            <div v-if="isGift" class="bg-img" @click="gotoGift">
+                <img :src="gameData.GameGateGift.productCover">
+                <span>{{gameData.GameGateGift.productCname}}</span>
+                <p>请3分钟内领奖，否则奖品作废</p>
             </div>
 
-            <section class="gmBodyArea">
-                <div class="money-box">
-                    您新增积分{{gameData.RewardPoint ? gameData.RewardPoint : 0}}分/<span>总积分{{pointData.playerGamePoint}}</span>
-                    <p>分享战绩可以获得更多积分</p>
-                </div>
+            <div v-if="isCoupon" class="content-box" @click="gotoCoupon">
+                <img :src="gameData.GameGateRewardCoupon.couponCover">
+                <span>{{gameData.GameGateRewardCoupon.couponTitle}}</span>
+                <p>请3分钟内领奖，否则奖品作废</p>
+            </div>
+            <!-- <a class="honor-box" v-if="isCash">
+                <span class="money-num">¥ {{gameData.GameGateRewardCash}}</span>
+                <span class="btn-font">
+                    <img src="../../assets/images/ticket-icon.png">
+                    领取奖励
+                </span>
+            </a> -->
+        </section>
 
-                <a class="honor-box" v-if="gameData.GameGateRewardCash != ''">
-                    <span class="money-num">¥ {{gameData.GameGateRewardCash}}</span>
-                    <span class="btn-font">
-                        <img src="../../assets/images/ticket-icon.png">
-                        领取奖励
-                    </span>
-                </a>
+        <section class="game-hornor-box" v-if="!isCanPlay">
+            <div class="black-bg" @click.self="isCanPlay = true"></div>
+            <img class="bg-img" src="/static/images/hornor-bg1.png">
 
-                <a class="honor-box"
-                    @click="gotoCoupon"
-                    v-if="gameData.GameGateRewardCoupon && gameData.GameGateRewardCoupon.couponCode">
-                    <span class="money-num">券</span>
-                    <span class="btn-font">
-                        <img src="../../assets/images/ticket-icon.png">
-                        领取奖励
-                    </span>
-                </a>
-            </section>
-            <section class="bottom-btn-box" v-if="isLoad">
-                <router-link :style="gmStopBtn"
-                                v-if="gateList[gateList.length - 1].gameGateCode != pointData.playerCurrentGate"
-                                :to="{
-                                    name: 'game-play',
-                                    query: {
-                                        enterpriseCode: $route.query.enterpriseCode,
-                                        eventCode: $route.query.eventCode,
-                                        gameCode: $route.query.gameCode,
-                                        agentId: $route.query.agentId,
-                                        appid: $route.query.appid,
-                                        S: $route.query.S,
-                                        sShareTo: $route.query.sShareTo,
-                                        C: $route.query.C,
-                                        cShareTo: $route.query.cShareTo,
-                                        T: $route.query.T,
-                                        tShareTo: $route.query.tShareTo,
-                                        spreadType: $route.query.spreadType
-                                    }
-                                }">
-                    {{gameData.isPass == '1' ? gameTemplate.stopBtnOneFont : '再来一次'}}
-                </router-link>
-                <router-link :style="gmStopBtn"
-                                :to="{
-                                    name: 'game-share',
-                                    query: {
-                                        enterpriseCode: $route.query.enterpriseCode,
-                                        eventCode: $route.query.eventCode,
-                                        gameCode: $route.query.gameCode,
-                                        gameSessionCode: $route.query.gameSessionCode,
-                                        gameType: $route.query.gameType,
-                                        agentId: $route.query.agentId,
-                                        appid: $route.query.appid,
-                                        S: $route.query.S,
-                                        sShareTo: $route.query.sShareTo,
-                                        C: $route.query.C,
-                                        cShareTo: $route.query.cShareTo,
-                                        T: $route.query.T,
-                                        tShareTo: $route.query.tShareTo,
-                                        spreadType: $route.query.spreadType
-                                    }
-                                }">
-                    {{gameTemplate.stopBtnTwoFont}}
-                </router-link>
-            </section>
+            <div v-if="isScore" class="bg-img">
+                <img src="/static/images/no-score.png">
+                <span class="scroe-box">
+                    积分不足<br>
+                    请分享增加积分
+                </span>
+            </div>
+
+            <div v-if="!isScore" class="bg-img">
+                <img src="/static/images/no-score.png">
+                <span class="scroe-box">
+                    很遗憾<br>
+                    您已通关
+                </span>
+            </div>
+        </section>
     </section>
 </template>
 <script>
@@ -96,9 +143,17 @@ import { mapGetters, mapActions } from 'vuex'
 export default {
     data () {
         return {
+            isAnimate: true,
             isLoad: false,
             gameData: {},
-            gateInfo: {}
+            gateInfo: {},
+            nextPlayGate: {},
+            scoreData: {},
+            isClick: false,
+            hasAward: false,
+            isCanAward: false,
+            isCanPlay: true,
+            isScore: true
         }
     },
     mixins: [templateMixin],
@@ -112,23 +167,132 @@ export default {
             gateList: 'getGateList',
             gameInfo: 'getGameInfo',
             pointData: 'getPointData'
-        })
+        }),
+        isPass () {
+            var isPass = false
+            if (this.gameData.isPass === '1' && this.gateInfo.gatePassAwardType === '2') {
+                isPass = true
+            }
+
+            if (this.gameData.isPass === '0' && this.gateInfo.gateFailAwardType === '2') {
+                isPass = true
+            }
+
+            return isPass
+        },
+        isCanGet () {
+            var isPass = false
+            if (this.gameData.isPass === '1' && this.gateInfo.gatePassAwardType === '1') {
+                isPass = true
+            }
+
+            if (this.gameData.isPass === '0' && this.gateInfo.gateFailAwardType === '1') {
+                isPass = true
+            }
+
+            return this.isCanAward || isPass
+        },
+        isCash () {
+            var booleanStr = false
+            if (this.gameData.isPass === '1' && this.gateInfo.gatePassIncentiveType === '0') {
+                booleanStr = true
+            }
+
+            if (this.gameData.isPass === '0' && this.gateInfo.gateFailIncentiveType === '0') {
+                booleanStr = true
+            }
+
+            return booleanStr
+        },
+        isCoupon () {
+            var booleanStr = false
+            if (this.gameData.isPass === '1' && this.gateInfo.gatePassIncentiveType === '1') {
+                booleanStr = true
+            }
+
+            if (this.gameData.isPass === '0' && this.gateInfo.gateFailIncentiveType === '1') {
+                booleanStr = true
+            }
+
+            return booleanStr
+        },
+        isGift () {
+            var booleanStr = false
+            if (this.gameData.isPass === '1' && this.gateInfo.gatePassIncentiveType === '2') {
+                booleanStr = true
+            }
+
+            if (this.gameData.isPass === '0' && this.gateInfo.gateFailIncentiveType === '2') {
+                booleanStr = true
+            }
+
+            return booleanStr
+        },
+        isNull () {
+            var booleanStr = false
+            if (this.gameData.isPass === '1' && this.gateInfo.gatePassIncentiveType === '3') {
+                booleanStr = true
+            }
+
+            if (this.gameData.isPass === '0' && this.gateInfo.gateFailIncentiveType === '3') {
+                booleanStr = true
+            }
+
+            return booleanStr
+        }
     },
     mounted () {
         this.getGameData()
+        this.getScores()
 
         // 当前关卡
         for (var i = 0; i < this.gateList.length; i++) {
-            if (this.pointData.playerCurrentGate == this.gateList[i].gameGateCode) {
+            if (this.$route.query.gameGateCode == this.gateList[i].gameGateCode) {
                 this.gateInfo = this.gateList[i]
                 break
             }
         }
+
+        setTimeout(() => {
+            this.isAnimate = false
+        }, 3000)
     },
     methods: {
         ...mapActions([
             'setPointData'
         ]),
+        goToPlay () {
+            if (!this.nextPlayGate) {
+                this.isScore = false
+                this.isCanPlay = false
+                return false
+            }
+
+            if (this.pointData.playerGamePoint < this.nextPlayGate.gateConsumePoint) {
+                this.isScore = true
+                this.isCanPlay = false
+                return false
+            }
+
+            var pathData = {
+                name: 'game-play',
+                query: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    eventCode: this.$route.query.eventCode,
+                    gameCode: this.$route.query.gameCode,
+                    appid: this.$route.query.appid,
+                    S: this.$route.query.S,
+                    sShareTo: this.$route.query.sShareTo,
+                    C: this.$route.query.C,
+                    cShareTo: this.$route.query.cShareTo,
+                    T: this.$route.query.T,
+                    tShareTo: this.$route.query.tShareTo,
+                    spreadType: this.$route.query.spreadType
+                }
+            }
+
+            this.$router.push(pathData)
+        },
         setLog (data) {
             util.request({
                 method: 'post',
@@ -154,14 +318,31 @@ export default {
                     eventCode: this.$route.query.eventCode,
                     gameCode: this.$route.query.gameCode,
                     playerCode: this.gameUser.customerCode,
+                    customerType: this.gameUser.customerType,
                     gameSessionCode: this.$route.query.gameSessionCode,
-                    gameGateCode: this.$route.query.gameGateCode
+                    gameGateCode: this.$route.query.gameGateCode,
+                    gameSubjectCode: window.sessionStorage.getItem('gateQuestions')
                 }
             }).then(res => {
                 if (res.result.success == '1') {
                     this.gameData = res.result.result
                     this.isLoad = true
                     this.getPointData()
+                } else {
+                    this.$message.error(res.result.message)
+                }
+            })
+        },
+        getScores () {
+            util.request({
+                method: 'get',
+                interface: 'playerscore',
+                data: {
+                    playerCode: this.gameUser.customerCode
+                }
+            }).then(res => {
+                if (res.result.success == '1') {
+                    this.scoreData = res.result.result
                 } else {
                     this.$message.error(res.result.message)
                 }
@@ -181,51 +362,102 @@ export default {
                 if (res.result.success == '1') {
                     this.setPointData(res.result.result)
 
-                    if (this.gateList[this.gateList.length - 1].gameGateCode == this.pointData.playerCurrentGate) {
-                        // 全部通关
-                        var logData = {
-                            interactionType: 'memberWinGame',
-                            interactionDesc: '客户成功通过游戏所有关卡',
-                            primeObject: this.$route.query.eventCode,
-                            subObject: this.$route.query.gameCode,
-                            otherObject: this.$route.query.gameGateCode
+                    setTimeout(()=>{
+                        if (this.pointData.playerCurrentGate) {
+                            for (var i = 0; i < this.gateList.length; i++) {
+                                if (this.pointData.playerCurrentGate == this.gateList[i].gameGateCode) {
+                                    this.nextPlayGate = this.gateList[i + 1]
+                                    break
+                                }
+                            }
                         }
-                        this.setLog(logData)
-                        return false
-                    }
 
-                    if (this.gameData.isPass == '1') {
-                        // 通过一关
-                        var logData = {
-                            interactionType: 'memberPassGameGate',
-                            interactionDesc: '客户成功通过游戏一关',
-                            primeObject: this.$route.query.eventCode,
-                            subObject: this.$route.query.gameCode,
-                            otherObject: this.$route.query.gameGateCode
+                        if (!this.nextPlayGate) {
+                            // 全部通关
+                            var logData = {
+                                interactionType: 'memberWinGame',
+                                interactionDesc: '客户成功通过游戏所有关卡',
+                                primeObject: this.$route.query.eventCode,
+                                subObject: this.$route.query.gameCode,
+                                otherObject: this.$route.query.gameGateCode
+                            }
+                            this.setLog(logData)
+                            return false
                         }
-                        this.setLog(logData)
-                        return false
-                    }
 
-                    if (this.gameData.isPass == '0') {
-                        // 没通过
-                        var logData = {
-                            interactionType: 'memberFailPassGameGate',
-                            interactionDesc: '客户没有通过游戏关卡',
-                            primeObject: this.$route.query.eventCode,
-                            subObject: this.$route.query.gameCode,
-                            otherObject: this.$route.query.gameGateCode
+                        if (this.gameData.isPass == '1') {
+                            // 通过一关
+                            var logData = {
+                                interactionType: 'memberPassGameGate',
+                                interactionDesc: '客户成功通过游戏一关',
+                                primeObject: this.$route.query.eventCode,
+                                subObject: this.$route.query.gameCode,
+                                otherObject: this.$route.query.gameGateCode
+                            }
+                            this.setLog(logData)
+                            return false
                         }
-                        this.setLog(logData)
-                        return false
-                    }
+
+                        if (this.gameData.isPass == '0') {
+                            // 没通过
+                            var logData = {
+                                interactionType: 'memberFailPassGameGate',
+                                interactionDesc: '客户没有通过游戏关卡',
+                                primeObject: this.$route.query.eventCode,
+                                subObject: this.$route.query.gameCode,
+                                otherObject: this.$route.query.gameGateCode
+                            }
+                            this.setLog(logData)
+                            return false
+                        }
+                    }, 0)
+                    
+                } else {
+                    this.$message.error(res.result.message)
+                }
+            })
+        },
+        getRewardMess () {
+            this.isClick = true
+            var formData = {
+                enterpriseCode: this.$route.query.enterpriseCode,
+                interactionPrimeObject: this.$route.query.eventCode,
+                interactionSubObject: this.$route.query.gameCode,
+                customerCode: this.gameUser.customerCode,
+                customerType: this.gameUser.customerType,
+                gameSessionCode: this.$route.query.gameSessionCode,
+                interactionOtherObject: this.$route.query.gameGateCode
+            }
+
+            if (this.gameData.isPass == '1') {
+                formData.interactionType = 'memberDrawLotteryForPass'
+                formData.interactionDesc = '游戏闯关成功摇奖'
+            } else {
+                formData.interactionType = 'memberDrawLotteryForFail'
+                formData.interactionDesc = '游戏闯关失败摇奖'
+            }
+
+            util.request({
+                method: 'post',
+                interface: 'gamelottery',
+                data: formData
+            }).then(res => {
+                if (res.result.success == '1') {
+                    setTimeout(() => {
+                        if (res.result.result === '1') {
+                            this.isCanAward = true
+                        } else {
+                            this.isCanAward = false
+                            this.hasAward = true
+                        }
+                    }, 3000)
                 } else {
                     this.$message.error(res.result.message)
                 }
             })
         },
         gotoCoupon () {
-            if (this.gameUser.customerType == '1') {
+            if (this.gameUser.customerType === '1') {
                 this.getCoupon()
             } else {
                 util.getUser(() => {
@@ -233,19 +465,53 @@ export default {
                 }, 'snsapi_userinfo')
             }
         },
+        gotoGift () {
+            var location = window.location
+            var nextPage = location.origin + '/orderCreate' + location.search
+
+            window.sessionStorage.setItem('giftCodes', this.gameData.GameGateGift.productCode)
+
+            if (this.gameUser.customerType === '1') {
+                this.$router.push(util.formDataUrl(nextPage))
+            } else {
+                util.getUser(() => {
+                    this.$router.push(util.formDataUrl(nextPage))
+                }, 'snsapi_userinfo', window.encodeURIComponent(nextPage))
+            }
+        },
         getCoupon () {
-            window.wx.addCard({
-                cardList: [{
-                    cardId: this.gameData.GameGateRewardCoupon.couponWechatId,
-                    cardExt: this.gameData.GameGateRewardCoupon.couponDescription
-                }],
-                success: function (res) {
-                    console.log(res)
+            var timestamp = String(Math.floor(new Date().getTime() / 1000))
+            var cardId = this.gameData.GameGateRewardCoupon.couponWechatId
+
+            util.request({
+                method: 'post',
+                interface: 'getCouponSignature',
+                data: {
+                    appId: this.$route.query.appid,
+                    timestamp: timestamp,
+                    cardId: cardId
+                }
+            }).then(res => {
+                if (res.result.success == '1') {
+                    var cardExt = {
+                        timestamp: timestamp,
+                        signature: res.result.result
+                    }
+
+                    window.wx.addCard({
+                        cardList: [{
+                            cardId: cardId,
+                            cardExt: JSON.stringify(cardExt)
+                        }],
+                        success: function (res) {
+                            console.log(res)
+                        }
+                    })
+                } else {
+                    this.$message.error(res.result.message)
                 }
             })
         }
     }
 }
 </script>
-<style lang="scss">
-</style>

@@ -1,16 +1,38 @@
 <template>
     <section class="gmBigBox" :style="gmBgBox">
-        <div class="ar-title">
-            <img src="gameData.eventPlanCover">
-        </div>
+        <div class="ar-title" v-html="gameData.eventPlanTitle"></div>
         <div class="game-desc-box" v-if="gameData.eventPlanTitle">游戏说明</div>
-        <section class="ar-text-body" :style="gmContent" v-html="gameData.eventPlanDesc"></section>
+        <section class="ar-text-body"
+                :style="gmContent"
+                v-html="gameData.eventPlanDesc">
+        </section>
         <section class="start-btn-box" v-if="gameData.eventPlanTitle">
             <span :style="gmStartBtnTwo" @click="goToPlay">
                 {{gameTemplate.startBtnTwoFont}}
             </span>
         </section>
         <div class="logo-box"></div>
+
+        <section class="game-hornor-box" v-if="!isCanPlay">
+            <div class="black-bg" @click.self="isCanPlay = true"></div>
+            <img class="bg-img" src="/static/images/hornor-bg1.png">
+
+            <div v-if="isScore" class="bg-img">
+                <img src="/static/images/no-score.png">
+                <span class="scroe-box">
+                    积分不足<br>
+                    请分享增加积分
+                </span>
+            </div>
+
+            <div v-if="!isScore" class="bg-img">
+                <img src="/static/images/no-score.png">
+                <span class="scroe-box">
+                    很遗憾<br>
+                    您已通关
+                </span>
+            </div>
+        </section>
     </section>
 </template>
 <script>
@@ -22,17 +44,17 @@ import { mapGetters, mapActions } from 'vuex'
 export default {
     data () {
         return {
-            gameData: {
-                eventPlanTitle: '',
-                eventPlanDesc: ''
-            },
-            gateInfo: {}
+            gateInfo: {},
+            listData: [],
+            isCanPlay: true,
+            isScore: true
         }
     },
     mixins: [templateMixin],
     computed: {
         ...mapGetters({
             gameUser: 'getGameUser',
+            gameData: 'getGameData',
             gameTemplate: 'getGameTemplate',
             gateList: 'getGateList',
             gameInfo: 'getGameInfo',
@@ -40,8 +62,6 @@ export default {
         })
     },
     mounted () {
-        this.getGameData()
-
         var logData = {
             interactionType: 'memberOpenGame',
             interactionDesc: '客户打开游戏',
@@ -64,22 +84,6 @@ export default {
         ...mapActions([
             'setPointData'
         ]),
-        getGameData () {
-            util.request({
-                method: 'get',
-                interface: 'eventInfoGet',
-                data: {
-                    enterpriseCode: this.$route.query.enterpriseCode,
-                    eventCode: this.$route.query.eventCode
-                }
-            }).then(res => {
-                if (res.result.success == '1') {
-                    this.gameData = res.result.result
-                } else {
-                    this.$message.error(res.result.message)
-                }
-            })
-        },
         setLog (data) {
             util.request({
                 method: 'post',
@@ -119,52 +123,35 @@ export default {
         },
         goToPlay () {
             if (!this.gateInfo) {
-                this.$message({
-                    type: 'warning',
-                    message: '恭喜您，已通关！'
-                })
+                this.isScore = false
+                this.isCanPlay = false
                 return false
             }
             
             if (this.pointData.playerGamePoint < this.gateInfo.gateConsumePoint) {
-                this.$message({
-                    type: 'warning',
-                    message: '您的积分不足，请补充！'
-                })
-
+                this.isScore = true
+                this.isCanPlay = false
                 return false
             }
 
-            util.request({
-                method: 'get',
-                interface: 'getGameSessionCode',
-                data: {}
-            }).then(res => {
-                if (res.result.success == '1') {
-                    var pathData = {
-                        name: 'game-play',
-                        query: {
-                            enterpriseCode: this.$route.query.enterpriseCode,
-                            eventCode: this.$route.query.eventCode,
-                            gameCode: this.$route.query.gameCode,
-                            agentId: this.$route.query.agentId,
-                            gameSessionCode: res.result.result,
-                            appid: this.$route.query.appid,
-                            S: this.$route.query.S,
-                            sShareTo: this.$route.query.sShareTo,
-                            C: this.$route.query.C,
-                            cShareTo: this.$route.query.cShareTo,
-                            T: this.$route.query.T,
-                            tShareTo: this.$route.query.tShareTo,
-                            spreadType: this.$route.query.spreadType
-                        }
-                    }
-
-                    this.$router.push(pathData)
-                } else {
-                    this.$message.error(res.result.message)
+            var pathData = {
+                name: 'game-play',
+                query: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    eventCode: this.$route.query.eventCode,
+                    gameCode: this.$route.query.gameCode,
+                    appid: this.$route.query.appid,
+                    S: this.$route.query.S,
+                    sShareTo: this.$route.query.sShareTo,
+                    C: this.$route.query.C,
+                    cShareTo: this.$route.query.cShareTo,
+                    T: this.$route.query.T,
+                    tShareTo: this.$route.query.tShareTo,
+                    spreadType: this.$route.query.spreadType
                 }
-            })
+            }
+
+            this.$router.push(pathData)
         }
         // goCheer () {
         //     if (!this.gateInfo) {

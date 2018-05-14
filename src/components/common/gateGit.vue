@@ -13,12 +13,21 @@
         <div class="gate-birdes-box">
             <img src="/static/images/gate-birdes.png">
         </div>
-        <div class="gate-person-box" v-if="personDefault !== ''" :style="{bottom: personDefault}">
+
+        <div class="gate-person-box" v-if="personDefault !== ''"
+            :style="{
+                'bottom': personDefault,
+                'margin-left': personX
+            }">
             <img src="/static/images/gate-person.png">
         </div>
 
-        <div class="gate-font-box" v-if="gateNum !== ''">
+        <div class="gate-font-box" v-if="gateNum < gateLength">
             第{{gateNum + 1}}关
+        </div>
+
+        <div class="gate-font-box" v-if="gateNum == gateLength">
+            已通关
         </div>
     </section>
 </template>
@@ -26,7 +35,7 @@
 import $ from 'Jquery'
 
 export default {
-    props: ['gateNumNow', 'gateNumNext'],
+    props: ['gateNumNow', 'gateLength'],
     data () {
         return {
             numBoxBottom: '',
@@ -38,30 +47,33 @@ export default {
     },
     mounted () {
         var num = this.gateNumNow ? this.gateNumNow : 0
+        this.gateNum = num
+
+        if (num > 0) {
+            this.gateNum = num - 1
+        }
+
         var winWidth = $('body').width()
         var defaultHeight = Math.round(winWidth / 750 * 410)
         this.gateHeight = Math.round(winWidth / 750 * 250)
-        this.numBoxBottom = this.gateHeight * num + 'px'
-        this.personDefault = defaultHeight + this.gateHeight * num + 'px'
-        if (num % 2 == 0) {
-            this.personX = '-100px'
+        this.numBoxBottom = this.gateHeight * this.gateNum * -1 + 'px'
+        this.personDefault = defaultHeight + 'px'
+
+        if (this.gateNum % 2 == 0) {
+            this.personX = '-80px'
         } else {
-            this.personX = '40px'
+            this.personX = '20px'
         }
-        this.gateNum = num
 
         setTimeout(() => {
-            var numNext = this.gateNumNext ? this.gateNumNext : 0
-            this.numBoxBottom = this.gateHeight * numNext * -1 + 'px'
-            if (num % 2 == 0) {
-                this.personX = '-100px'
-            } else {
-                this.personX = '40px'
-            }
-            this.gateNum = numNext
-        }, 1000)
+            this.numBoxBottom = this.gateHeight * num * -1 + 'px'
 
-        console.log(this.numBoxBottom)
+            if ((this.gateNum + 1) % 2 == 0) {
+                this.personX = '-80px'
+            } else {
+                this.personX = '20px'
+            }
+        }, 1000)
     }
 }
 </script>
@@ -80,7 +92,7 @@ export default {
         position: absolute;
         left: 0;
         bottom: 0;
-        transition: all 1s ease-in-out;
+        transition: all 3s ease-in-out;
 
         .gate-num-box {
             display: block;
@@ -104,7 +116,7 @@ export default {
         position: absolute;
         left: 20px;
         top: 20px;
-        animation:lightDark 1s infinite alternate;
+        animation:lightDark 6s infinite;
 
         img {
             display: block;
@@ -117,6 +129,7 @@ export default {
         height: 44px;
         position: absolute;
         left: 50%;
+        transition: all 3s ease-in-out;
 
         img {
             display: block;
@@ -130,7 +143,7 @@ export default {
         height: 30px;
         left: 0;
         top: 30%;
-        font-size: 26px;
+        font-size: 30px;
         line-height: 30px;
         color: #000000;
         text-align: center;
@@ -140,10 +153,12 @@ export default {
 @keyframes lightDark
 {
     from {
+        transform: translate(-160px, 0) scale(1);
         opacity: 1;
     }
     to {
-        opacity: 0.5;
+        opacity: 0;
+        transform: translate(100px, 0) scale(0.3);
     }
 }
 </style>

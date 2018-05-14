@@ -1,10 +1,9 @@
 <template>
     <section>
         <gate-git v-if="nowGateIndex !== '' && isAnimate"
-                    :gate-num-now="nowGate"
-                    :gate-num-next="nextGate"></gate-git>
+                    :gate-num-now="nowGateIndex + 1" :gate-length="gateList.length"></gate-git>
         <section class="gmBigBox">
-            <section class="game-big-body" :style="gmBgBox">
+            <section class="game-big-body" :style="gmPlayBox" v-if="!notPlay">
                 <div class="clock-box"
                         v-if="isAnwserTimer">
                         {{anwserTime | formatDate}}
@@ -146,16 +145,18 @@
                     </section>
                 </section>
             </section>
-            <section class="play-btn-box">
-                
-                <template v-if="this.gateInfo.gateCheatNumber > this.pointData.currentCheatNumber && this.gateInfo.cheatConsumePoint < this.pointData.playerGamePoint">
+            <section class="play-btn-box"
+                        v-if="isCheat || isMun">
+                <template v-if="isCheat">
                     <div class="play-btn" @click="goCheat">
                         <img src="../../assets/images/cheat-icon.png">
                         {{gameTemplate.playBtnOneFont}}
                     </div>
-                    <span>|</span>
                 </template>
-                <div class="play-btn" @click="setAnwserRecord">
+                <span v-if="isCheat && isMun">|</span>
+                <div class="play-btn"
+                     @click="setAnwserRecord"
+                     v-if="isMun">
                     <img src="../../assets/images/next-icon.png">
                     {{gameTemplate.playBtnThreeFont}}
                 </div>
@@ -173,6 +174,8 @@ import { mapGetters, mapActions } from 'vuex'
 export default {
     data () {
         return {
+            notPlay: false,
+            isLoad: false,
             isAnimate: true,
             gateInfo: {},
             questionList:  [],
@@ -181,20 +184,18 @@ export default {
             gateTime: 60,
             gateTimer: null,
             isAnwserTimer: false,
-            delayTime: 3000,
+            delayTime: 0,
             delayTimer: null,
             defaultAnwserTime: 15,
             anwserTimer: null,
             anwserTime: 15,
-            nowGateIndex: 0,
+            nowGateIndex: '',
             questionLength: 0,
             nowQuestionIndex: 0,
             nowQuestion: {},
             correctAnwser: [],
             gameSessionCode: '',
-            isCanNext: false,
-            nowGate: '',
-            nextGate: ''
+            isCanNext: false
         }
     },
     mixins: [templateMixin],
@@ -215,18 +216,15 @@ export default {
             gateList: 'getGateList',
             gameInfo: 'getGameInfo',
             pointData: 'getPointData'
-        })
+        }),
+        isCheat () {
+            return this.gateInfo.gateCheatNumber > this.pointData.currentCheatNumber && this.gateInfo.cheatConsumePoint < this.pointData.playerGamePoint && isLoad
+        },
+        isMun () {
+            return this.nowQuestion.Subject && this.nowQuestion.Subject.subjectContent && this.nowQuestion.Subject.subjectContent.subjectChooseType == '0'
+        }
     },
     mounted () {
-        var logData = {
-            interactionType: 'memberPlayGame',
-            interactionDesc: '客户玩游戏',
-            primeObject: this.$route.query.eventCode,
-            subObject: this.$route.query.gameCode,
-            otherObject: this.gateInfo.gameGateCode
-        }
-        this.setLog(logData)
-
         // 设置当前关卡的序号
         if (this.pointData.playerCurrentGate) {
             // 上一次玩到的关卡
@@ -241,16 +239,11 @@ export default {
             this.nowGateIndex = 0
         }
 
-        if (this.nowGateIndex > 0) {
-            this.nowGate = this.nowGateIndex - 1
-            this.nextGate = this.nowGateIndex
-        } else {
-            this.nowGate = 0
-            this.nextGate = 0
-        }
-
         setTimeout(() => {
-            this.isAnimate = false
+            if (this.nowGateIndex < this.gateList.length && !this.notPlay) {
+                this.isAnimate = false
+                this.setGateTime()
+            }
         }, 5000)
 
         this.gateInfo = this.gateList[this.nowGateIndex]
@@ -258,37 +251,40 @@ export default {
 
         this.getGameSessionCode()
         this.getQuestions()
-        this.getPointData()
     },
     methods: {
         ...mapActions([
             'setPointData'
         ]),
-        setLog (data) {
-            util.request({
-                method: 'post',
-                interface: 'customerGeneralLog',
-                data: {
+        getGameSessionCode () {
+            var formData = {
+                enterpriseCode: this.$route.query.enterpriseCode,
+                eventCode: this.$route.query.eventCode,
+                gameCode: this.$route.query.gameCode,
+                playerCode: this.gameUser.customerCode,
+                gameGateCode: this.gateInfo.gameGateCode,
+                customerInteractionLog: {
                     enterpriseCode: this.$route.query.enterpriseCode,
                     customerCode: this.gameUser.customerCode,
                     customerType: this.gameUser.customerType,
-                    interactionType: data.interactionType,
-                    interactionDesc: data.interactionDesc,
-                    interactionPrimeObject: data.primeObject,
-                    interactionSubObject: data.subObject,
-                    interactionOtherObject: data.otherObject
+                    interactionType: 'memberPlayGame',
+                    interactionDesc: '客户玩游戏,消耗' + this.gateInfo.gateConsumePoint + '分!',
+                    interactionPrimeObject: this.$route.query.eventCode,
+                    interactionSubObject: this.$route.query.gameCode,
+                    interactionOtherObject: this.gateInfo.gameGateCode
                 }
-            }).then(res => {})
-        },
-        getGameSessionCode () {
+            }
+
             util.request({
-                method: 'get',
+                method: 'post',
                 interface: 'getGameSessionCode',
-                data: {}
+                data: formData
             }).then(res => {
                 if (res.result.success == '1') {
                     this.gameSessionCode = res.result.result
+                    this.getPointData()
                 } else {
+                    this.notPlay = true
                     this.$message.error(res.result.message)
                 }
             })
@@ -306,6 +302,7 @@ export default {
             }).then(res => {
                 if (res.result.success == '1') {
                     this.setPointData(res.result.result)
+                    this.isLoad = true
                 } else {
                     this.$message.error(res.result.message)
                 }
@@ -326,9 +323,19 @@ export default {
                     this.questionList = res.result.result
                     this.questionLength = res.result.result.length
 
+                    var questionCodes = []
+                    if (this.questionLength) {
+                        res.result.result.forEach((item) => {
+                            questionCodes.push(item.Subject.subjectCode)
+                        }, 0)
+                    }
+
+                    if (questionCodes.length) {
+                        window.sessionStorage.setItem('gateQuestions', questionCodes.join(','))
+                    }
+
                     // 设置题目
                     this.setQuestion()
-                    this.setGateTime()
                 } else {
                     this.$message.error(res.result.message)
                 }
@@ -336,7 +343,7 @@ export default {
         },
         setGateTime () {
             // 通关时间倒计时
-            if (!this.gateTimer && this.isGateTimer) {
+            if (!this.gateTimer && this.isGateTimer && this.questionList.length) {
                 this.gateTime = this.defaultGateTime
                 this.gateTimer = setInterval(() => {
                     if (!this.gateTime) {
@@ -355,6 +362,15 @@ export default {
         },
         setQuestion () {
             this.isCanNext = true
+
+            if (!this.questionLength) {
+                this.$message({
+                    type: 'warning',
+                    message: '系统题库不足！'
+                })
+
+                return false
+            }
 
             if (this.nowQuestionIndex >= this.questionLength) {
                 var pathData = {
@@ -422,6 +438,10 @@ export default {
                 } else {
                     this.correctAnwser.splice(index, 1)
                 }
+            }
+
+            if (anwser.subjectChooseType == '1') {
+                this.setAnwserRecord()
             }
         },
         setAnwserRecord () {

@@ -49,6 +49,17 @@ const routers = [
     }
   },
   {
+    // 详情编辑
+    path: '/orderCreate',
+    name: 'order-create',
+    component (resolve) {
+      require(["./orderCreate.vue"], resolve)
+    },
+    meta: {
+      title: '营销精英'
+    }
+  },
+  {
     // 地图搜索
     path: '/search-map',
     name: 'search-map',
@@ -183,14 +194,6 @@ const routers = [
         path: 'gamePlay',
         name: 'game-play',
         component: resolve => require(["../../components/questionGame/gamePlay.vue"], resolve),
-        meta: {
-          title: '答题游戏'
-        }
-      },
-      {
-        path: 'gameStop',
-        name: 'game-stop',
-        component: resolve => require(["../../components/questionGame/gameStop.vue"], resolve),
         meta: {
           title: '答题游戏'
         }

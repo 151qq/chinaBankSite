@@ -756,6 +756,29 @@ body {
 }
 
 // 游戏进行页
+.check-gif-box {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+  background: #ffffff;
+
+  img {
+    display: block;
+    width: 50%;
+    margin: 120px auto 10px;
+  }
+
+  span {
+    font-size: 18px;
+    display: block;
+    text-align: center;
+    color: #333333;
+  }
+}
+
 .gmBigBox {
   display: flex;
   flex-direction: column;
@@ -767,7 +790,7 @@ body {
   background-position: center top;
   background-repeat: no-repeat;
   background-size: 100% 100%;
-  background-color: #F9F9F9;
+  background-color: #fefefe;
   overflow: hidden;
 
   .gif-box {
@@ -805,6 +828,7 @@ body {
 
   .ar-title {
     margin-top: 20px;
+    padding: 0 30px;
 
     img {
       display: block;
@@ -822,13 +846,12 @@ body {
   }
 
   .start-btn-box {
-    width: 100%;
-    flex-direction: column;
-    display: flex;
-    align-items: center;
-    box-sizing: border-box;
-    overflow: hidden;
-    margin-bottom: 70px;
+      width: 100%;
+      flex-direction: column;
+      padding: 0 30px;
+      box-sizing: border-box;
+      overflow: hidden;
+      margin-bottom: 160px;
   }
 
   .play-btn-box {
@@ -866,6 +889,10 @@ body {
   }
 }
 
+.gmShare {
+  background-color: #242180;
+}
+
 .gmBodyArea {
   flex: 1;
   display: block;
@@ -880,28 +907,28 @@ body {
     justify-content: space-around;
 
     .share-title {
-      margin-top: 20px;
-
       img {
         display: block;
-        width: 80%;
+        width: 100%;
         margin: auto;
       }
     }
 
     .person-box {
+      position: relative;
+      flex: 1;
+      background: #2B64E1;
+      margin-top: -1px;
+      padding-top: 13px;
+
       .attar-box {
-        width: 140px;
-        height: 140px;
         overflow: hidden;
         position: relative;
-        left: 50%;
-        transform: translateX(-50%);
 
         .bg-attar {
           display: block;
-          width: 100%;
-          height: 100%;
+          margin: auto;
+          width: 74px;
         }
 
         .attar {
@@ -910,6 +937,9 @@ body {
           top: 50%;
           border-radius: 50%;
           transform: translate(-50%, -50%);
+          width: 40px;
+          height: 40px;
+          margin-top: 5px;
         }
       }
 
@@ -920,55 +950,44 @@ body {
           font-size: 14px;
           color: #ffffff;
           text-align: center;
-        }
-
-        .game-name {
-          font-size: 14px;
-          color: #ffffff;
-          background: url() no-repeat left top;
-          background-size: 100% 100%;
-          width: 180px;
-          height: 36px;
-          text-align: center;
-          margin: 10px auto;
+          margin-top: 7px;
         }
 
         .user-num {
           height: 40px;
-          display: flex;
-          align-items: center;
-          font-size: 14px;
-          color: #ffffff ;
-          justify-content: center;
-
-          img {
-            display: block;
-            width: 18px;
-            height: 14px;
-            margin-right: 10px;
-          }
-
-          .num-box {
-            font-size: 16px;
-          }
+          margin-top: 10px;
+          text-align: center;
+          font-size: 18px;
+          line-height: 30px;
+          color: #FFEB65 ;
         }
       }
-    }
 
-    .ewm-box {
-      img {
-        display: block;
-        width: 100px;
-        height: 100px;
-        margin: auto;
-      }
+      .ewm-box {
+        display: flex;
+        width: 160px;
+        position: absolute;
+        left: 50%;
+        bottom: 30px;
+        margin-left: -80px;
+        justify-content: space-between;
+        flex-wrap: wrap;
 
-      span {
-        display: block;
-        text-align: center;
-        line-height: 36px;
-        font-size: 12px;
-        color: #ffffff;
+        img {
+          display: block;
+          width: 70px;
+          height: 70px;
+          border-radius: 4px;
+        }
+
+        span {
+          display: block;
+          width: 100%;
+          color: #A3C0FF;
+          font-size: 14px;
+          margin-top: 7px;
+          text-align: center;
+        }
       }
     }
   } 
@@ -1070,7 +1089,7 @@ body {
     }
 
     p {
-      font-size: 12px;
+      font-size: 14px;
       color: #7E7E90;
       margin-top: 10px;
       line-height: 17px;
@@ -1083,6 +1102,7 @@ body {
     height: 89px;
     background: url(/static/images/ticket-bg.png) no-repeat left top;
     background-size: 100% 100%;
+    margin: auto;
     margin-top: 20px;
     line-height: 89px;
 
@@ -1108,6 +1128,82 @@ body {
         margin-bottom: -2px;
         margin-right: 5px;
       }
+    }
+  }
+
+  .gift-box {
+    display: block;
+    margin-top: 20px;
+
+    img {
+      display: block;
+      width: 120px;
+      height: auto;
+      margin: 0 auto 10px;
+    }
+
+    .btn-font {
+      display: block;
+      text-align: center;
+      font-size: 18px;
+      line-height: 30px;
+      margin-top: 10px;
+      color: #000000;
+    }
+  }
+
+  .click-box {
+    display: block;
+    width: 220px;
+    margin: auto;
+    margin-top: 20px;
+
+    img {
+      display: block;
+      width: 220px;
+      height: auto;
+      margin: 0 auto 10px;
+    }
+
+    .btn-font {
+      display: block;
+      width: 208px;
+      height: 32px;
+      text-align: center;
+      font-size: 14px;
+      line-height: 32px;
+      color: #ffffff;
+      background: #C5443E;
+      border-radius: 4px;
+    }
+  }
+
+  .no-gift-box {
+    display: block;
+    margin-top: 40px;
+
+    img {
+      display: block;
+      width: 70px;
+      height: auto;
+      margin: 0 auto 10px;
+    }
+
+    .btn-font {
+      display: block;
+      text-align: center;
+      font-size: 18px;
+      line-height: 30px;
+      margin-top: 10px;
+      color: #000000;
+    }
+
+    .mess-font {
+      display: block;
+      text-align: center;
+      font-size: 12px;
+      line-height: 17px;
+      color: #7E7E90;
     }
   }
 }
@@ -1283,6 +1379,59 @@ body {
 }
 
 // 游戏弹窗
+.game-hornor-box {
+    position: fixed;
+    left: 0;
+    height: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+
+    .black-bg {
+        width: 100%;
+        height: 100%;
+        background: #000000;
+        opacity: 0.6;
+    }
+
+    .bg-img {
+      position: absolute;
+      width: 220px;
+      height: 285px;
+      left: 50%;
+      top: 40%;
+      transform: translate(-50%,-50%);
+
+      img {
+        display: block;
+        height: 80px;
+        margin: 60px auto 0;
+      }
+
+      span {
+        color: #ffffff;
+        font-size: 18px;
+        text-align: center;
+        display: block;
+        margin-top: 40px;
+      }
+
+      .scroe-box {
+        margin-top: 70px;
+      }
+
+      p {
+        position: absolute;
+        width: 100%;
+        bottom: 8px;
+        left: 0;
+        color: #333333;
+        font-size: 12px;
+        text-align: center;
+        display: block;
+      }
+    }
+}
 .game-submit-box {
     position: fixed;
     left: 0;

@@ -19,22 +19,23 @@ export default {
     },
     mounted () {
         util.getGameUser(() => {
-            if (this.isEnterprise) {
+            if (this.isEnterprise && this.$route.query.name != 'game-share') {
                 return false
             }
 
+            this.getGameData()
             this.getTemplate()
             this.getGates()
             this.getGameInfo()
             this.getPointData()
-
-            jsSdk.init()
         })
     },
     computed: {
         ...mapGetters({
             gameUser: 'getGameUser',
-            gameInfo: 'getGameInfo'
+            gameData: 'getGameData',
+            gameInfo: 'getGameInfo',
+            pointData: 'getPointData'
         }),
         isEnterprise () {
             var types = ['enterprise_channel_open', 'enterprise_user_open']
@@ -43,11 +44,100 @@ export default {
     },
     methods: {
         ...mapActions([
+            'setGameData',
             'setGateList',
             'setGameInfo',
             'setGameTemplate',
             'setPointData'
         ]),
+        getGameData () {
+            util.request({
+                method: 'get',
+                interface: 'eventInfoGet',
+                data: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    eventCode: this.$route.query.eventCode
+                }
+            }).then(res => {
+                if (res.result.success == '1') {
+                    this.setGameData(res.result.result)
+                    jsSdk.init(this.setShare)
+                } else {
+                    this.$message.error(res.result.message)
+                }
+            })
+        },
+        setShare () {
+            var queryData = {
+                enterpriseCode: this.$route.query.enterpriseCode,
+                eventCode: this.$route.query.eventCode,
+                gameCode: this.$route.query.gameCode,
+                gameSessionCode: this.$route.query.gameSessionCode,
+                agentId: this.$route.query.agentId,
+                appid: this.$route.query.appid,
+                S: this.$route.query.S,
+                C: this.$route.query.C,
+                spreadType: this.$route.query.spreadType,
+                T: this.gameUser.t,
+                sShareTo: this.$route.query.sShareTo,
+                cShareTo: this.$route.query.cShareTo
+            }
+
+            var queryList = []
+            for (var k in queryData) {
+                queryList.push(k + '=' + queryData[k])
+            }
+
+            var location = window.location
+
+            var link = location.origin + '/questionGame/gameShare?' + queryList.join('&') + '&playerCode=' + this.gameUser.customerCode
+            var title = this.gameData.eventPlanTitle.replace(/<.*?>/g, '')
+            var desc = '我正在玩工行的答题游戏，真是烧脑，你也来测试吧'
+
+            var _self = this
+
+            var shareData = {
+                title: title,
+                desc: desc,
+                link: link,
+                imgUrl: _self.gameData.eventPlanCover,
+                success (data) {
+                    _self.$message({
+                        message: '恭喜你，分享成功！',
+                        type: 'success'
+                    })
+                    _self.addPoint()
+                    _self.goToPlay()
+                },
+                cancel (data) {}
+            }
+
+            jsSdk.setShare(shareData, true)
+        },
+        goToPlay () {
+            if (this.$route.name != 'game-share') {
+                return false
+            }
+
+            var pathData = {
+                name: 'game-play',
+                query: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    eventCode: this.$route.query.eventCode,
+                    gameCode: this.$route.query.gameCode,
+                    appid: this.$route.query.appid,
+                    S: this.$route.query.S,
+                    sShareTo: this.$route.query.sShareTo,
+                    C: this.$route.query.C,
+                    cShareTo: this.$route.query.cShareTo,
+                    T: this.$route.query.T,
+                    tShareTo: this.$route.query.tShareTo,
+                    spreadType: this.$route.query.spreadType
+                }
+            }
+
+            this.$router.replace(pathData)
+        },
         getPointData () {
             util.request({
                 method: 'post',
@@ -78,51 +168,6 @@ export default {
                 if (res.result.success == '1') {
                     this.setGameTemplate(res.result.result)
                     this.isTemplate = true
-
-                    var queryData = {
-                        enterpriseCode: this.$route.query.enterpriseCode,
-                        eventCode: this.$route.query.eventCode,
-                        gameCode: this.$route.query.gameCode,
-                        gameSessionCode: this.$route.query.gameSessionCode,
-                        agentId: this.$route.query.agentId,
-                        appid: this.$route.query.appid,
-                        S: this.$route.query.S,
-                        C: this.$route.query.C,
-                        spreadType: this.$route.query.spreadType,
-                        T: this.gameUser.T,
-                        sShareTo: this.$route.query.sShareTo,
-                        cShareTo: this.$route.query.cShareTo
-                    }
-
-                    var queryList = []
-                    for (var k in queryData) {
-                        queryList.push(k + '=' + queryData[k])
-                    }
-
-                    var location = window.location
-
-                    var link = location.origin + '/questionGame/gameShare?' + queryList.join('&')
-                    var title = '您的好友已上线！'
-                    var desc = '答题答到嘴软，数钱数到手抽'
-
-                    var _self = this
-
-                    var shareData = {
-                        title: title,
-                        desc: desc,
-                        link: link,
-                        imgUrl: _self.gameUser.memberWechatImg,
-                        success (data) {
-                            _self.$message({
-                                message: '恭喜你，分享成功！',
-                                type: 'success'
-                            })
-                            _self.addPoint()
-                        },
-                        cancel (data) {}
-                    }
-
-                    jsSdk.setShare(shareData, true)
                 } else {
                     this.$message.error(res.result.message)
                 }
@@ -176,11 +221,11 @@ export default {
                     gameGateCode: this.$route.query.gameGateCode,
                     gameSessionCode: this.$route.query.gameSessionCode,
                     playerType: '2',
-                    pointChangeDesc: '分享增加积分'
+                    pointChangeDesc: 'memberGetPointForSharingGame'
                 }
             }).then(res => {
                 if (res.result.success == '1') {
-                    this.getPointData
+                    this.getPointData()
                 } else {
                     this.$message.error(res.result.message)
                 }

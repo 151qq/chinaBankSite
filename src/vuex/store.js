@@ -11,7 +11,8 @@ const userStore = new Vuex.Store({
     gameInfo: {},
     gameUser: {},
     gameTemplate: {},
-    pointData: {}
+    pointData: {},
+    gameData: {}
   },
   getters: {
     getUserInfo (state) {
@@ -34,6 +35,9 @@ const userStore = new Vuex.Store({
     },
     getPointData (state) {
       return state.pointData
+    },
+    getGameData (state) {
+      return state.gameData
     }
   },
   mutations: {
@@ -57,6 +61,9 @@ const userStore = new Vuex.Store({
     },
     setPointData (state, pointData) {
       state.pointData = pointData
+    },
+    setGameData (state, gameData) {
+      state.gameData = gameData
     }
   },
   actions: {
@@ -80,6 +87,9 @@ const userStore = new Vuex.Store({
     },
     setPointData ({ commit }, pointData) {
       commit('setPointData',pointData)
+    },
+    setGameData ({ commit }, gameData) {
+      commit('setGameData',gameData)
     }
   }
 })

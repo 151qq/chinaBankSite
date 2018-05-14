@@ -27,6 +27,14 @@ export default {
             var formData = {
                 enterpriseCode: this.$route.query.enterpriseCode,
                 appId: this.$route.query.appid,
+                pageCode: this.$route.query.gameCode,
+                spreadOriginCode: this.$route.query.S,
+                spreadOriginShareTo: this.$route.query.sShareTo,
+                spreadChannelCode: this.$route.query.C,
+                spreadChannelShareTo: this.$route.query.cShareTo,
+                spreadParentType: this.$route.query.spreadType,
+                spreadParentCode: this.$route.query.T,
+                spreadParentShareTo: this.$route.query.tShareTo,
                 code: this.$route.query.code,
                 scope: 'snsapi_userinfo'
             }

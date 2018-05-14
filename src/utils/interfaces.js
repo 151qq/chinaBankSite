@@ -5,6 +5,7 @@ export default{
     interfaces: {
         getServiceWechatUserInfo: platform + 'getServiceWechatUserInfo.json',
         getSignature: platform + 'getSignature.json',
+        getCouponSignature: platform + 'getCouponSignature.json',
         saveMemberInfo: platform + 'member/saveMemberInfo.json',
         sentSms: platform + 'customer/sentSms.json',
         checkCustome: platform + 'customer/checkCustomer.json',
@@ -33,6 +34,7 @@ export default{
         getExtendPages: platform + 'htmlPageExtend/getExtendPages.json',
 
         eventInfoGet: platform + 'event/eventInfoGet.json',
+        eventpagemapList: platform + 'eventpagemap/list.json',
         subjectAndOption: platform + 'subject/subjectAndOption.json',
         gameRecordCreate: platform + 'gamepkrecord/create.json',
         icbcCheckCustomer: platform + 'customer/icbcCheckCustomer.json',
@@ -52,6 +54,9 @@ export default{
         gameCheat: platform + 'gameSubjectRecord/cheat.json',
         getGameSessionCode: platform + 'game/getGameSessionCode.json',
         generateQRcode: platform + 'generateQRcode.json',
+        organizeOrderSave: platform + 'organizeOrderInfo/insertOrUpdate.json',
+        gamelottery: platform + 'gamelottery/lottery.json',
+        playerscore: platform + 'count/playerscore.json',
 
         /**
         * 推广 get

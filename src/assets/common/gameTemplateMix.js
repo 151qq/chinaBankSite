@@ -7,6 +7,13 @@ export default {
 
             return styleData
         },
+        gmPlayBox () {
+            var styleData = {
+                'background-image': 'url(' + this.gameTemplate.gameAnimateGif + ')'
+            }
+
+            return styleData
+        },
         gmBody () {
             var styleData = {
                 'height': '100%',
@@ -76,14 +83,14 @@ export default {
                 'text-align': 'center',
                 'box-sizing': 'border-box',
                 'overflow': 'hidden',
-                'font-size': '16px',
+                'font-size': '18px',
                 'line-height': '42px',
-                'border-radius': '3px',
+                'border-radius': '21px',
                 'cursor': 'pointer',
                 'color': this.gameTemplate.startBtnTwoFontColor,
                 'background-color': this.gameTemplate.startBtnTwoBackColor,
                 'border': '1px solid ' + this.gameTemplate.startBtnTwoBorderColor,
-                'width': '70%'
+                'width': '160px'
             }
 
             return styleData
@@ -208,7 +215,7 @@ export default {
         },
         shareBgBox () {
             var styleData = {
-                'background-image': 'url(' + this.gameTemplate.shareBigBg + ')'
+                'background-color': '#242180'
             }
 
             return styleData

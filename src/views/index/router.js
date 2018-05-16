@@ -50,6 +50,17 @@ const routers = [
   },
   {
     // 详情编辑
+    path: '/timeoutPage',
+    name: 'timeoutPage',
+    component (resolve) {
+      require(["./timeoutPage.vue"], resolve)
+    },
+    meta: {
+      title: '营销精英'
+    }
+  },
+  {
+    // 详情编辑
     path: '/orderCreate',
     name: 'order-create',
     component (resolve) {

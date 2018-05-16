@@ -207,8 +207,8 @@ export default {
                 'bottom': '15px',
                 'width': '100%',
                 'text-align': 'center',
-                'font-size': this.gameTemplate.stopFontSize + 'px',
-                'color': this.gameTemplate.stopFontColor
+                'font-size': this.gameTemplate.stopPersonFontSize + 'px',
+                'color': this.gameTemplate.stopPersonColor
             }
 
             return styleData

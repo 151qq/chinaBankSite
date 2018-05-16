@@ -134,6 +134,10 @@ const tools = {
     /**
      * 请求拦截：在请求之前执行 比如loading处理
      * */
+
+    // 设置超时时间
+    axios.defaults.timeout =  5000;
+
     return new Promise((resolve, reject) => {
 
       axios.interceptors.request.use((config) => {
@@ -150,8 +154,9 @@ const tools = {
         },
 
         error => {
-          if(error.response.status){
-            console.log(error.response.status)
+          var originalRequest = error.config;
+          if(error.code == 'ECONNABORTED' && error.message.indexOf('timeout')!=-1 && !originalRequest._retry){
+              window.location.href = "/timeoutPage";
           }
         }
 

@@ -2,8 +2,8 @@
     <section>
         <gate-git v-if="nowGateIndex !== '' && isAnimate"
                     :gate-num-now="nowGateIndex + 1" :gate-length="gateList.length"></gate-git>
-        <section class="gmBigBox">
-            <section class="game-big-body" :style="gmPlayBox" v-if="!notPlay">
+        <section class="gmBigBox" v-if="isLoad">
+            <section class="game-big-body" :style="gmPlayBox">
                 <div class="clock-box"
                         v-if="isAnwserTimer">
                         {{anwserTime | formatDate}}
@@ -83,7 +83,7 @@
                                 </template>
                             </div>
                             
-                            <section v-if="anwser.optionCssType != '2'">
+                            <section class="anwser-out-box" v-if="anwser.optionCssType != '2'">
                                 <div class="question-title"
                                     @click="setAnwser(anwser)"
                                     :style="anwserTitle">
@@ -162,6 +162,34 @@
                 </div>
             </section>
         </section>
+
+        <section class="game-hornor-box" v-if="isError">
+            <div class="black-bg"></div>
+
+            <div v-if="errorType == '1'" class="error-img">
+                <img src="/static/images/no-score.png">
+                <span>
+                    亲，游戏币不够了<br>
+                    请点击右上角分享获取游戏币
+                </span>
+            </div>
+
+            <div v-if="errorType == '2'" class="error-img">
+                <img src="/static/images/no-score.png">
+                <span>
+                    亲，恭喜通关<br>
+                    分享给好友一起闯关吧
+                </span>
+            </div>
+
+            <div v-if="errorType == '3'" class="error-img">
+                <img src="/static/images/no-score.png">
+                <span>
+                    亲，系统出现故障<br>
+                    重新试一次吧
+                </span>
+            </div>
+        </section>
     </section>
 </template>
 <script>
@@ -169,12 +197,13 @@ import util from '../../utils/tools'
 import jsSdk from '../../utils/jsSdk'
 import gateGit from '../../components/common/gateGit'
 import templateMixin from '../../assets/common/gameTemplateMix'
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters } from 'vuex'
 
 export default {
     data () {
         return {
-            notPlay: false,
+            isError: false,
+            errorType: '',
             isLoad: false,
             isAnimate: true,
             gateInfo: {},
@@ -195,7 +224,9 @@ export default {
             nowQuestion: {},
             correctAnwser: [],
             gameSessionCode: '',
-            isCanNext: false
+            isCanNext: true,
+            pointData: {},
+            gameData: {}
         }
     },
     mixins: [templateMixin],
@@ -214,11 +245,10 @@ export default {
             gameUser: 'getGameUser',
             gameTemplate: 'getGameTemplate',
             gateList: 'getGateList',
-            gameInfo: 'getGameInfo',
-            pointData: 'getPointData'
+            gameInfo: 'getGameInfo'
         }),
         isCheat () {
-            return this.gateInfo.gateCheatNumber > this.pointData.currentCheatNumber && this.gateInfo.cheatConsumePoint < this.pointData.playerGamePoint && isLoad
+            return this.gateInfo.gateCheatNumber > this.pointData.currentCheatNumber && this.gateInfo.cheatConsumePoint < this.pointData.playerGamePoint
         },
         isMun () {
             return this.nowQuestion.Subject && this.nowQuestion.Subject.subjectContent && this.nowQuestion.Subject.subjectContent.subjectChooseType == '0'
@@ -226,68 +256,86 @@ export default {
     },
     mounted () {
         // 设置当前关卡的序号
-        if (this.pointData.playerCurrentGate) {
-            // 上一次玩到的关卡
-            for (var i = 0; i < this.gateList.length; i++) {
-                if (this.pointData.playerCurrentGate == this.gateList[i].gameGateCode) {
-                    this.nowGateIndex = i + 1
-                    break
-                }
+        for (var i = 0; i < this.gateList.length; i++) {
+            if (this.$route.query.gameGateCode == this.gateList[i].gameGateCode) {
+                this.nowGateIndex = i
+                break
             }
-        } else {
-            // 第一次玩
-            this.nowGateIndex = 0
         }
-
-        setTimeout(() => {
-            if (this.nowGateIndex < this.gateList.length && !this.notPlay) {
-                this.isAnimate = false
-                this.setGateTime()
-            }
-        }, 5000)
 
         this.gateInfo = this.gateList[this.nowGateIndex]
         this.defaultGateTime = this.gateInfo.gateTimeLimit
 
         this.getGameSessionCode()
+        this.getGameData()
         this.getQuestions()
+        
+        setTimeout(() => {
+            this.setGateTime()
+        }, 5000)
     },
     methods: {
-        ...mapActions([
-            'setPointData'
-        ]),
-        getGameSessionCode () {
-            var formData = {
-                enterpriseCode: this.$route.query.enterpriseCode,
-                eventCode: this.$route.query.eventCode,
-                gameCode: this.$route.query.gameCode,
-                playerCode: this.gameUser.customerCode,
-                gameGateCode: this.gateInfo.gameGateCode,
-                customerInteractionLog: {
-                    enterpriseCode: this.$route.query.enterpriseCode,
-                    customerCode: this.gameUser.customerCode,
-                    customerType: this.gameUser.customerType,
-                    interactionType: 'memberPlayGame',
-                    interactionDesc: '客户玩游戏,消耗' + this.gateInfo.gateConsumePoint + '分!',
-                    interactionPrimeObject: this.$route.query.eventCode,
-                    interactionSubObject: this.$route.query.gameCode,
-                    interactionOtherObject: this.gateInfo.gameGateCode
-                }
-            }
-
+        getGameData () {
             util.request({
-                method: 'post',
-                interface: 'getGameSessionCode',
-                data: formData
+                method: 'get',
+                interface: 'eventInfoGet',
+                data: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    eventCode: this.$route.query.eventCode
+                }
             }).then(res => {
                 if (res.result.success == '1') {
-                    this.gameSessionCode = res.result.result
-                    this.getPointData()
+                    this.gameData = res.result.result                  
+                    jsSdk.init(this.setShare)
                 } else {
-                    this.notPlay = true
                     this.$message.error(res.result.message)
                 }
             })
+        },
+        setShare () {
+            var queryData = {
+                enterpriseCode: this.$route.query.enterpriseCode,
+                eventCode: this.$route.query.eventCode,
+                gameCode: this.$route.query.gameCode,
+                gameSessionCode: this.$route.query.gameSessionCode,
+                appid: this.$route.query.appid,
+                S: this.$route.query.S,
+                C: this.$route.query.C,
+                spreadType: this.$route.query.spreadType,
+                T: this.gameUser.t,
+                sShareTo: this.$route.query.sShareTo,
+                cShareTo: this.$route.query.cShareTo
+            }
+
+            var queryList = []
+            for (var k in queryData) {
+                queryList.push(k + '=' + queryData[k])
+            }
+
+            var location = window.location
+
+            var link = location.origin + '/questionGame/gameShare?' + queryList.join('&') + '&playerCode=' + this.gameUser.customerCode
+            var title = this.gameData.eventPlanTitle.replace(/<.*?>/g, '')
+            var desc = '我在玩答题冲大奖，根本停不下来，你也来试试吧～'
+
+            var _self = this
+
+            var shareData = {
+                title: title,
+                desc: desc,
+                link: link,
+                imgUrl: _self.gameData.eventPlanCover,
+                success (data) {
+                    _self.$message({
+                        message: '恭喜你，分享成功！',
+                        type: 'success'
+                    })
+                    _self.addPoint()
+                },
+                cancel (data) {}
+            }
+
+            jsSdk.setShare(shareData, true)
         },
         getPointData () {
             util.request({
@@ -301,10 +349,84 @@ export default {
                 }
             }).then(res => {
                 if (res.result.success == '1') {
-                    this.setPointData(res.result.result)
+                    this.pointData = res.result.result
                     this.isLoad = true
                 } else {
                     this.$message.error(res.result.message)
+                }
+            })
+        },
+        addPoint () {
+            util.request({
+                method: 'get',
+                interface: 'addPoint',
+                data: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    eventCode: this.$route.query.eventCode,
+                    gameCode: this.$route.query.gameCode,
+                    playerCode: this.gameUser.customerCode,
+                    gamePoint: this.gameInfo.gameSharePoint,
+                    gameGateCode: this.$route.query.gameGateCode,
+                    gameSessionCode: this.gameSessionCode,
+                    playerType: '2',
+                    pointChangeDesc: 'memberGetPointForSharingGame'
+                }
+            }).then(res => {
+                if (res.result.success == '1') {
+                    var pathData = {
+                        name: 'game-start',
+                        query: {
+                            enterpriseCode: this.$route.query.enterpriseCode,
+                            eventCode: this.$route.query.eventCode,
+                            gameCode: this.$route.query.gameCode,
+                            appid: this.$route.query.appid,
+                            S: this.$route.query.S,
+                            sShareTo: this.$route.query.sShareTo,
+                            C: this.$route.query.C,
+                            cShareTo: this.$route.query.cShareTo,
+                            T: this.$route.query.T,
+                            tShareTo: this.$route.query.tShareTo,
+                            spreadType: this.$route.query.spreadType
+                        }
+                    }
+
+                    this.$router.push(pathData)
+                } else {
+                    this.$message.error(res.result.message)
+                }
+            })
+        },
+        getGameSessionCode () {
+            var formData = {
+                enterpriseCode: this.$route.query.enterpriseCode,
+                eventCode: this.$route.query.eventCode,
+                gameCode: this.$route.query.gameCode,
+                playerCode: this.gameUser.customerCode,
+                gameGateCode: this.$route.query.gameGateCode,
+                customerInteractionLog: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    customerCode: this.gameUser.customerCode,
+                    customerType: this.gameUser.customerType,
+                    interactionType: 'memberPlayGame',
+                    interactionDesc: '客户玩游戏,消耗' + this.gateInfo.gateConsumePoint + '分!',
+                    interactionPrimeObject: this.$route.query.eventCode,
+                    interactionSubObject: this.$route.query.gameCode,
+                    interactionOtherObject: this.$route.query.gameGateCode
+                }
+            }
+
+            util.request({
+                method: 'post',
+                interface: 'getGameSessionCode',
+                data: formData
+            }).then(res => {
+                if (res.result.success == '1') {
+                    this.gameSessionCode = res.result.result
+                    this.getPointData()
+                } else {
+                    this.isError = true
+                    this.errorType = '1'
+                    // this.$message.error(res.result.message)
                 }
             })
         },
@@ -316,7 +438,7 @@ export default {
                     enterpriseCode: this.$route.query.enterpriseCode,
                     eventCode: this.$route.query.eventCode,
                     gameCode: this.$route.query.gameCode,
-                    gameGateCode: this.gateInfo.gameGateCode
+                    gameGateCode: this.$route.query.gameGateCode
                 }
             }).then(res => {
                 if (res.result.success == '1') {
@@ -342,6 +464,24 @@ export default {
             })
         },
         setGateTime () {
+            if (!this.questionList.length) {
+                this.isError = true
+                this.errorType = '3'
+                return false
+            }
+
+            if (!this.gateInfo) {
+                this.isError = true
+                this.errorType = '2'
+                return false
+            }
+
+            if (this.isError) {
+                return false
+            }
+
+            this.isAnimate = false
+
             // 通关时间倒计时
             if (!this.gateTimer && this.isGateTimer && this.questionList.length) {
                 this.gateTime = this.defaultGateTime
@@ -361,17 +501,6 @@ export default {
             }
         },
         setQuestion () {
-            this.isCanNext = true
-
-            if (!this.questionLength) {
-                this.$message({
-                    type: 'warning',
-                    message: '系统题库不足！'
-                })
-
-                return false
-            }
-
             if (this.nowQuestionIndex >= this.questionLength) {
                 var pathData = {
                     name: 'game-stop',
@@ -380,9 +509,10 @@ export default {
                         eventCode: this.$route.query.eventCode,
                         gameCode: this.$route.query.gameCode,
                         gameSessionCode: this.gameSessionCode,
-                        gameGateCode: this.gateInfo.gameGateCode,
+                        gameGateCode: this.$route.query.gameGateCode,
                         agentId: this.$route.query.agentId,
                         appid: this.$route.query.appid,
+                        playerCode: this.gameUser.customerCode,
                         S: this.$route.query.S,
                         sShareTo: this.$route.query.sShareTo,
                         C: this.$route.query.C,
@@ -424,8 +554,6 @@ export default {
             }
         },
         setAnwser (anwser) {
-            this.isCanNext = true
-
             if (anwser.subjectChooseType == '1') {
                 // 单选
                 this.correctAnwser = [anwser.subjectCode]
@@ -468,7 +596,7 @@ export default {
                     playerCode: this.gameUser.customerCode,
                     gameSessionCode: this.gameSessionCode,
                     playerType: '2',
-                    gameGateCode: this.gateInfo.gameGateCode,
+                    gameGateCode: this.$route.query.gameGateCode,
                     subjectCode: this.nowQuestion.Subject.subjectCode,
                     subjectResult: this.correctAnwser.join(',')
                 }
@@ -476,6 +604,7 @@ export default {
                 if (res.result.success == '1') {
                     this.nowQuestionIndex++
                     this.setQuestion()
+                    this.isCanNext = true
                 } else {
                     this.$message.error(res.result.message)
                 }
@@ -487,7 +616,7 @@ export default {
                 eventCode: this.$route.query.eventCode,
                 gameCode: this.$route.query.gameCode,
                 playerCode: this.gameUser.customerCode,
-                gameGateCode: this.gateInfo.gameGateCode,
+                gameGateCode: this.$route.query.gameGateCode,
                 subjectCode: this.nowQuestion.Subject.subjectCode,
                 gameSessionCode: this.gameSessionCode,
                 customerInteractionLog: {
@@ -498,7 +627,7 @@ export default {
                     interactionDesc: '作弊成功,用户扣减' + this.gateInfo.cheatConsumePoint + '分!',
                     interactionPrimeObject: this.$route.query.eventCode,
                     interactionSubObject: this.$route.query.gameCode,
-                    interactionOtherObject: this.gateInfo.gameGateCode
+                    interactionOtherObject: this.$route.query.gameGateCode
                 }
             }
 
@@ -510,6 +639,7 @@ export default {
                 if (res.result.success == '1') {
                     this.getPointData()
                     this.correctAnwser = res.result.result.split(',')
+                    this.setAnwserRecord()
                 } else {
                     this.$message.error(res.result.message)
                 }

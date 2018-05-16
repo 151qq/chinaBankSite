@@ -13,8 +13,8 @@
                         </div>
                         <div :style="personStyle">
                             {{gameUser.memberWechatNickname}}<br>
-                            您共获得{{scoreData.sumTotalValue}}分<br>
-                            您已经回答了{{scoreData.sumSubjectNum}}条题目<br>
+                            共获得{{scoreData.sumTotalValue}}分<br>
+                            您已回答{{scoreData.sumSubjectNum}}条题目<br>
                         </div>
                     </div>
                     <div v-if="isLoad" :style="stopFontStyle">
@@ -24,7 +24,7 @@
 
                 <section class="gmBodyArea" v-if="isLoad">
                     <div class="money-box">
-                        <p>分享战绩再次闯关</p>
+                        <p>邀请好友获得更多游戏币</p>
                     </div>
                     <template v-if="isNull">
                         <a class="no-gift-box">
@@ -32,12 +32,17 @@
                             <span class="btn-font">
                                 非常遗憾，再接再厉！
                             </span>
+                            <span class="mess-font">
+                                关注“工银融e行”微信公众号<br>
+                                看攻略<br>
+                                只能帮到这儿了...
+                            </span>
                         </a>
                     </template>
                     
                     <template v-if="!isNull">
                         <template v-if="isPass">
-                            <a class="click-box" v-if="!hasAward">
+                            <a class="click-box" v-if="awardStatus === ''">
                                 <img v-if="!isClick" @click="getRewardMess" src="/static/images/gift-switch.jpg">
                                 <span class="btn-font" v-if="!isClick" @click="getRewardMess">
                                     点击摇奖
@@ -45,13 +50,27 @@
                                 <img v-if="isClick" src="/static/images/gift-door.gif">
                             </a>
 
-                            <a class="no-gift-box" v-if="hasAward">
+                            <a class="click-box" v-if="awardStatus === '1'">
+                                <img src="/static/images/gift-switch.jpg" @click="isCanGet = true">
+                                <span class="btn-font" @click="isCanGet = true">
+                                    立即兑奖
+                                </span>
+                            </a>
+
+                            <a class="no-gift-box" v-if="awardStatus === '0'">
                                 <img src="/static/images/no-score.png">
                                 <span class="btn-font">
                                     很遗憾，未中奖！
                                 </span>
                                 <span class="mess-font">
                                     快去继续答题，获得更多抽奖机会吧！
+                                </span>
+                            </a>
+
+                            <a class="no-gift-box" v-if="awardStatus === '2'">
+                                <img src="/static/images/no-score.png">
+                                <span class="btn-font">
+                                    您已经参与过抽奖！
                                 </span>
                             </a>
                         </template>
@@ -88,11 +107,11 @@
                 </section>
         </section>
 
-        <section class="game-hornor-box" v-if="isCanGet">
+        <section class="game-hornor-box" v-if="true">
             <div class="black-bg" @click.self="isCanGet = false"></div>
             <img class="bg-img" src="/static/images/hornor-bg.png">
 
-            <div v-if="isGift" class="bg-img" @click="gotoGift">
+            <div v-if="true" class="bg-img" @click="gotoGift">
                 <img :src="gameData.GameGateGift.productCover">
                 <span>{{gameData.GameGateGift.productCname}}</span>
                 <p>请3分钟内领奖，否则奖品作废</p>
@@ -114,21 +133,20 @@
 
         <section class="game-hornor-box" v-if="!isCanPlay">
             <div class="black-bg" @click.self="isCanPlay = true"></div>
-            <img class="bg-img" src="/static/images/hornor-bg1.png">
 
-            <div v-if="isScore" class="bg-img">
+            <div v-if="errorType == '1'" class="error-img">
                 <img src="/static/images/no-score.png">
-                <span class="scroe-box">
-                    积分不足<br>
-                    请分享增加积分
+                <span>
+                    亲，游戏币不够了<br>
+                    请点击右上角分享获取游戏币
                 </span>
             </div>
 
-            <div v-if="!isScore" class="bg-img">
+            <div v-if="errorType == '2'" class="error-img">
                 <img src="/static/images/no-score.png">
-                <span class="scroe-box">
-                    很遗憾<br>
-                    您已通关
+                <span>
+                    亲，恭喜通关<br>
+                    分享给好友一起闯关吧
                 </span>
             </div>
         </section>
@@ -138,7 +156,7 @@
 import util from '../../utils/tools'
 import jsSdk from '../../utils/jsSdk'
 import templateMixin from '../../assets/common/gameTemplateMix'
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters } from 'vuex'
 
 export default {
     data () {
@@ -150,10 +168,13 @@ export default {
             nextPlayGate: {},
             scoreData: {},
             isClick: false,
-            hasAward: false,
+            awardStatus: '',
+            isCanGet: false,
             isCanAward: false,
             isCanPlay: true,
-            isScore: true
+            errorType: '',
+            pointData: {},
+            eventData: {}
         }
     },
     mixins: [templateMixin],
@@ -165,8 +186,7 @@ export default {
             gameUser: 'getGameUser',
             gameTemplate: 'getGameTemplate',
             gateList: 'getGateList',
-            gameInfo: 'getGameInfo',
-            pointData: 'getPointData'
+            gameInfo: 'getGameInfo'
         }),
         isPass () {
             var isPass = false
@@ -179,18 +199,6 @@ export default {
             }
 
             return isPass
-        },
-        isCanGet () {
-            var isPass = false
-            if (this.gameData.isPass === '1' && this.gateInfo.gatePassAwardType === '1') {
-                isPass = true
-            }
-
-            if (this.gameData.isPass === '0' && this.gateInfo.gateFailAwardType === '1') {
-                isPass = true
-            }
-
-            return this.isCanAward || isPass
         },
         isCash () {
             var booleanStr = false
@@ -244,6 +252,7 @@ export default {
     mounted () {
         this.getGameData()
         this.getScores()
+        this.getGameStop()
 
         // 当前关卡
         for (var i = 0; i < this.gateList.length; i++) {
@@ -258,18 +267,144 @@ export default {
         }, 3000)
     },
     methods: {
-        ...mapActions([
-            'setPointData'
-        ]),
+        getGameData () {
+            util.request({
+                method: 'get',
+                interface: 'eventInfoGet',
+                data: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    eventCode: this.$route.query.eventCode
+                }
+            }).then(res => {
+                if (res.result.success == '1') {
+                    this.eventData = res.result.result                  
+                    jsSdk.init(this.setShare)
+                } else {
+                    this.$message.error(res.result.message)
+                }
+            })
+        },
+        setShare () {
+            var queryData = {
+                enterpriseCode: this.$route.query.enterpriseCode,
+                eventCode: this.$route.query.eventCode,
+                gameCode: this.$route.query.gameCode,
+                gameSessionCode: this.$route.query.gameSessionCode,
+                appid: this.$route.query.appid,
+                S: this.$route.query.S,
+                C: this.$route.query.C,
+                spreadType: this.$route.query.spreadType,
+                T: this.gameUser.t,
+                sShareTo: this.$route.query.sShareTo,
+                cShareTo: this.$route.query.cShareTo
+            }
+
+            var queryList = []
+            for (var k in queryData) {
+                queryList.push(k + '=' + queryData[k])
+            }
+
+            var location = window.location
+
+            var link = location.origin + '/questionGame/gameShare?' + queryList.join('&') + '&playerCode=' + this.gameUser.customerCode
+            var title = this.eventData.eventPlanTitle.replace(/<.*?>/g, '')
+            var desc = '我在玩答题冲大奖，根本停不下来，你也来试试吧～'
+
+            var _self = this
+
+            var shareData = {
+                title: title,
+                desc: desc,
+                link: link,
+                imgUrl: _self.eventData.eventPlanCover,
+                success (data) {
+                    _self.$message({
+                        message: '恭喜你，分享成功！',
+                        type: 'success'
+                    })
+                    _self.addPoint()
+                },
+                cancel (data) {}
+            }
+
+            jsSdk.setShare(shareData, true)
+        },
+        getPointData () {
+            util.request({
+                method: 'post',
+                interface: 'personalPoints',
+                data: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    eventCode: this.$route.query.eventCode,
+                    gamePlayerCode: this.gameUser.customerCode,
+                    gameCode: this.$route.query.gameCode
+                }
+            }).then(res => {
+                if (res.result.success == '1') {
+                    this.pointData = res.result.result
+
+                    setTimeout(()=>{
+                        if (this.pointData.playerCurrentGate) {
+                            for (var i = 0; i < this.gateList.length; i++) {
+                                if (this.pointData.playerCurrentGate == this.gateList[i].gameGateCode) {
+                                    this.nextPlayGate = this.gateList[i + 1]
+                                    break
+                                }
+                            }
+                        } else {
+                            this.nextPlayGate = this.gateList[0]
+                        }
+
+                        if (!this.nextPlayGate) {
+                            // 全部通关
+                            var logData = {
+                                interactionType: 'memberWinGame',
+                                interactionDesc: '客户成功通过游戏所有关卡',
+                                primeObject: this.$route.query.eventCode,
+                                subObject: this.$route.query.gameCode,
+                                otherObject: this.$route.query.gameGateCode
+                            }
+                            this.setLog(logData)
+                            return false
+                        }
+                    }, 0)
+                } else {
+                    this.$message.error(res.result.message)
+                }
+            })
+        },
+        addPoint () {
+            util.request({
+                method: 'get',
+                interface: 'addPoint',
+                data: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    eventCode: this.$route.query.eventCode,
+                    gameCode: this.$route.query.gameCode,
+                    playerCode: this.gameUser.customerCode,
+                    gamePoint: this.gameInfo.gameSharePoint,
+                    gameGateCode: this.$route.query.gameGateCode,
+                    gameSessionCode: this.$route.query.gameSessionCode,
+                    playerType: '2',
+                    pointChangeDesc: 'memberGetPointForSharingGame'
+                }
+            }).then(res => {
+                if (res.result.success == '1') {
+                    this.getPointData()
+                } else {
+                    this.$message.error(res.result.message)
+                }
+            })
+        },
         goToPlay () {
             if (!this.nextPlayGate) {
-                this.isScore = false
+                this.errorType = '2'
                 this.isCanPlay = false
                 return false
             }
 
             if (this.pointData.playerGamePoint < this.nextPlayGate.gateConsumePoint) {
-                this.isScore = true
+                this.errorType = '1'
                 this.isCanPlay = false
                 return false
             }
@@ -280,6 +415,7 @@ export default {
                     enterpriseCode: this.$route.query.enterpriseCode,
                     eventCode: this.$route.query.eventCode,
                     gameCode: this.$route.query.gameCode,
+                    gameGateCode: this.nextPlayGate.gameGateCode,
                     appid: this.$route.query.appid,
                     S: this.$route.query.S,
                     sShareTo: this.$route.query.sShareTo,
@@ -309,7 +445,7 @@ export default {
                 }
             }).then(res => {})
         },
-        getGameData () {
+        getGameStop () {
             util.request({
                 method: 'post',
                 interface: 'passDetails',
@@ -328,6 +464,32 @@ export default {
                     this.gameData = res.result.result
                     this.isLoad = true
                     this.getPointData()
+
+                    if (this.gameData.isPass == '1') {
+                        // 通过一关
+                        var logData = {
+                            interactionType: 'memberPassGameGate',
+                            interactionDesc: '客户成功通过游戏一关',
+                            primeObject: this.$route.query.eventCode,
+                            subObject: this.$route.query.gameCode,
+                            otherObject: this.$route.query.gameGateCode
+                        }
+                        this.setLog(logData)
+                        return false
+                    }
+
+                    if (this.gameData.isPass == '0') {
+                        // 没通过
+                        var logData = {
+                            interactionType: 'memberFailPassGameGate',
+                            interactionDesc: '客户没有通过游戏关卡',
+                            primeObject: this.$route.query.eventCode,
+                            subObject: this.$route.query.gameCode,
+                            otherObject: this.$route.query.gameGateCode
+                        }
+                        this.setLog(logData)
+                        return false
+                    }
                 } else {
                     this.$message.error(res.result.message)
                 }
@@ -343,77 +505,6 @@ export default {
             }).then(res => {
                 if (res.result.success == '1') {
                     this.scoreData = res.result.result
-                } else {
-                    this.$message.error(res.result.message)
-                }
-            })
-        },
-        getPointData () {
-            util.request({
-                method: 'post',
-                interface: 'personalPoints',
-                data: {
-                    enterpriseCode: this.$route.query.enterpriseCode,
-                    eventCode: this.$route.query.eventCode,
-                    gamePlayerCode: this.gameUser.customerCode,
-                    gameCode: this.$route.query.gameCode
-                }
-            }).then(res => {
-                if (res.result.success == '1') {
-                    this.setPointData(res.result.result)
-
-                    setTimeout(()=>{
-                        if (this.pointData.playerCurrentGate) {
-                            for (var i = 0; i < this.gateList.length; i++) {
-                                if (this.pointData.playerCurrentGate == this.gateList[i].gameGateCode) {
-                                    this.nextPlayGate = this.gateList[i + 1]
-                                    break
-                                }
-                            }
-                        } else {
-                            this.nextPlayGate = this.gateList[0]
-                        }
-
-                        if (!this.nextPlayGate) {
-                            // 全部通关
-                            var logData = {
-                                interactionType: 'memberWinGame',
-                                interactionDesc: '客户成功通过游戏所有关卡',
-                                primeObject: this.$route.query.eventCode,
-                                subObject: this.$route.query.gameCode,
-                                otherObject: this.$route.query.gameGateCode
-                            }
-                            this.setLog(logData)
-                            return false
-                        }
-
-                        if (this.gameData.isPass == '1') {
-                            // 通过一关
-                            var logData = {
-                                interactionType: 'memberPassGameGate',
-                                interactionDesc: '客户成功通过游戏一关',
-                                primeObject: this.$route.query.eventCode,
-                                subObject: this.$route.query.gameCode,
-                                otherObject: this.$route.query.gameGateCode
-                            }
-                            this.setLog(logData)
-                            return false
-                        }
-
-                        if (this.gameData.isPass == '0') {
-                            // 没通过
-                            var logData = {
-                                interactionType: 'memberFailPassGameGate',
-                                interactionDesc: '客户没有通过游戏关卡',
-                                primeObject: this.$route.query.eventCode,
-                                subObject: this.$route.query.gameCode,
-                                otherObject: this.$route.query.gameGateCode
-                            }
-                            this.setLog(logData)
-                            return false
-                        }
-                    }, 0)
-                    
                 } else {
                     this.$message.error(res.result.message)
                 }
@@ -446,11 +537,9 @@ export default {
             }).then(res => {
                 if (res.result.success == '1') {
                     setTimeout(() => {
+                        this.awardStatus = res.result.result
                         if (res.result.result === '1') {
-                            this.isCanAward = true
-                        } else {
-                            this.isCanAward = false
-                            this.hasAward = true
+                            this.isCanGet = true
                         }
                     }, 3000)
                 } else {

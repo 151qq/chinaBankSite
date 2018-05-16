@@ -4,7 +4,7 @@
         <div class="submit-body">
             <img class="heart-box" src="../../assets/images/heart-big.png">
 
-            <div class="input-title">赠送积分</div>
+            <div class="input-title">赠送分</div>
 
             <div class="num-input marginB20">
                 <span class="num-btn"
@@ -97,7 +97,7 @@ export default {
                 enterpriseCode: this.$route.query.enterpriseCode,
                 commentType: '1',
                 commentFloor: this.commentFloor,
-                commentContent: '赠送了您' + this.commentData.point + '积分',
+                commentContent: '赠送了您' + this.commentData.point + '分',
                 memberCode: this.gameUser.customerCode,
                 templateCode: this.$route.query.templateCode,
                 attachments: this.commentData.attachments,

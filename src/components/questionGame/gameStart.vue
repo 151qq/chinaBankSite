@@ -15,21 +15,20 @@
 
         <section class="game-hornor-box" v-if="!isCanPlay">
             <div class="black-bg" @click.self="isCanPlay = true"></div>
-            <img class="bg-img" src="/static/images/hornor-bg1.png">
 
-            <div v-if="isScore" class="bg-img">
+            <div v-if="isScore" class="error-img">
                 <img src="/static/images/no-score.png">
-                <span class="scroe-box">
-                    积分不足<br>
-                    请分享增加积分
+                <span>
+                    亲，游戏币不够了<br>
+                    请点击右上角分享获取游戏币
                 </span>
             </div>
 
-            <div v-if="!isScore" class="bg-img">
+            <div v-if="!isScore" class="error-img">
                 <img src="/static/images/no-score.png">
-                <span class="scroe-box">
-                    很遗憾<br>
-                    您已通关
+                <span>
+                    亲，恭喜通关<br>
+                    分享给好友一起闯关吧
                 </span>
             </div>
         </section>
@@ -44,7 +43,9 @@ import { mapGetters, mapActions } from 'vuex'
 export default {
     data () {
         return {
+            gameData: {},
             gateInfo: {},
+            pointData: {},
             listData: [],
             isCanPlay: true,
             isScore: true
@@ -54,38 +55,130 @@ export default {
     computed: {
         ...mapGetters({
             gameUser: 'getGameUser',
-            gameData: 'getGameData',
             gameTemplate: 'getGameTemplate',
             gateList: 'getGateList',
-            gameInfo: 'getGameInfo',
-            pointData: 'getPointData'
+            gameInfo: 'getGameInfo'
         })
     },
     mounted () {
-        var logData = {
-            interactionType: 'memberOpenGame',
-            interactionDesc: '客户打开游戏',
-            primeObject: this.$route.query.eventCode,
-            subObject: this.$route.query.gameCode
-        }
-        this.setLog(logData)
-
-        // 当前关卡
-        if (this.pointData.playerCurrentGate) {
-            for (var i = 0; i < this.gateList.length; i++) {
-                if (this.pointData.playerCurrentGate == this.gateList[i].gameGateCode) {
-                    this.gateInfo = this.gateList[i + 1]
-                    break
-                }
-            }
-        } else {
-            this.gateInfo = this.gateList[0]
-        }
+        this.getGameData()
+        this.getPointData()
+        this.setStartLog()
     },
     methods: {
-        ...mapActions([
-            'setPointData'
-        ]),
+        getGameData () {
+            util.request({
+                method: 'get',
+                interface: 'eventInfoGet',
+                data: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    eventCode: this.$route.query.eventCode
+                }
+            }).then(res => {
+                if (res.result.success == '1') {
+                    this.gameData = res.result.result                  
+                    jsSdk.init(this.setShare)
+                } else {
+                    this.$message.error(res.result.message)
+                }
+            })
+        },
+        setShare () {
+            var queryData = {
+                enterpriseCode: this.$route.query.enterpriseCode,
+                eventCode: this.$route.query.eventCode,
+                gameCode: this.$route.query.gameCode,
+                gameSessionCode: this.$route.query.gameSessionCode,
+                appid: this.$route.query.appid,
+                S: this.$route.query.S,
+                C: this.$route.query.C,
+                spreadType: this.$route.query.spreadType,
+                T: this.gameUser.t,
+                sShareTo: this.$route.query.sShareTo,
+                cShareTo: this.$route.query.cShareTo
+            }
+
+            var queryList = []
+            for (var k in queryData) {
+                queryList.push(k + '=' + queryData[k])
+            }
+
+            var location = window.location
+
+            var link = location.origin + '/questionGame/gameShare?' + queryList.join('&') + '&playerCode=' + this.gameUser.customerCode
+            var title = this.gameData.eventPlanTitle.replace(/<.*?>/g, '')
+            var desc = '我在玩答题冲大奖，根本停不下来，你也来试试吧～'
+
+            var _self = this
+
+            var shareData = {
+                title: title,
+                desc: desc,
+                link: link,
+                imgUrl: _self.gameData.eventPlanCover,
+                success (data) {
+                    _self.$message({
+                        message: '恭喜你，分享成功！',
+                        type: 'success'
+                    })
+                    _self.addPoint()
+                },
+                cancel (data) {}
+            }
+
+            jsSdk.setShare(shareData, true)
+        },
+        getPointData () {
+            util.request({
+                method: 'post',
+                interface: 'personalPoints',
+                data: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    eventCode: this.$route.query.eventCode,
+                    gamePlayerCode: this.gameUser.customerCode,
+                    gameCode: this.$route.query.gameCode
+                }
+            }).then(res => {
+                if (res.result.success == '1') {
+                    this.pointData = res.result.result
+
+                    // 当前关卡
+                    if (this.pointData.playerCurrentGate) {
+                        for (var i = 0; i < this.gateList.length; i++) {
+                            if (this.pointData.playerCurrentGate == this.gateList[i].gameGateCode) {
+                                this.gateInfo = this.gateList[i + 1]
+                                break
+                            }
+                        }
+                    } else {
+                        this.gateInfo = this.gateList[0]
+                    }
+                } else {
+                    this.$message.error(res.result.message)
+                }
+            })
+        },
+        addPoint () {
+            util.request({
+                method: 'get',
+                interface: 'addPoint',
+                data: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    eventCode: this.$route.query.eventCode,
+                    gameCode: this.$route.query.gameCode,
+                    playerCode: this.gameUser.customerCode,
+                    gamePoint: this.gameInfo.gameSharePoint,
+                    playerType: '2',
+                    pointChangeDesc: 'memberGetPointForSharingGame'
+                }
+            }).then(res => {
+                if (res.result.success == '1') {
+                    this.getPointData()
+                } else {
+                    this.$message.error(res.result.message)
+                }
+            })
+        },
         setLog (data) {
             util.request({
                 method: 'post',
@@ -102,26 +195,14 @@ export default {
                 }
             }).then(res => {})
         },
-        goToPk () {
-            var pathData = {
-                name: 'game-play',
-                query: {
-                    enterpriseCode: this.$route.query.enterpriseCode,
-                    eventCode: this.$route.query.eventCode,
-                    gameCode: this.$route.query.gameCode,
-                    agentId: this.$route.query.agentId,
-                    appid: this.$route.query.appid,
-                    S: this.$route.query.S,
-                    sShareTo: this.$route.query.sShareTo,
-                    C: this.$route.query.C,
-                    cShareTo: this.$route.query.cShareTo,
-                    T: this.$route.query.T,
-                    tShareTo: this.$route.query.tShareTo,
-                    spreadType: this.$route.query.spreadType
-                }
+        setStartLog () {
+            var logData = {
+                interactionType: 'memberOpenGame',
+                interactionDesc: '客户打开游戏',
+                primeObject: this.$route.query.eventCode,
+                subObject: this.$route.query.gameCode
             }
-
-            this.$router.push(pathData)
+            this.setLog(logData)
         },
         goToPlay () {
             if (!this.gateInfo) {
@@ -133,6 +214,7 @@ export default {
             if (this.pointData.playerGamePoint < this.gateInfo.gateConsumePoint) {
                 this.isScore = true
                 this.isCanPlay = false
+
                 return false
             }
 
@@ -142,6 +224,7 @@ export default {
                     enterpriseCode: this.$route.query.enterpriseCode,
                     eventCode: this.$route.query.eventCode,
                     gameCode: this.$route.query.gameCode,
+                    gameGateCode: this.gateInfo.gameGateCode,
                     appid: this.$route.query.appid,
                     S: this.$route.query.S,
                     sShareTo: this.$route.query.sShareTo,
@@ -155,66 +238,6 @@ export default {
 
             this.$router.push(pathData)
         }
-        // goCheer () {
-        //     if (!this.gateInfo) {
-        //         this.$message({
-        //             type: 'warning',
-        //             message: '恭喜您，已通关！'
-        //         })
-        //     }
-
-        //     var formData = {
-        //         enterpriseCode: this.$route.query.enterpriseCode,
-        //         eventCode: this.$route.query.eventCode,
-        //         gameCode: this.$route.query.gameCode,
-        //         gamePlayerCode: this.gameUser.customerCode,
-        //         gamePlayerType: '2',
-        //         gameGateCode: this.gateInfo.gameGateCode,
-        //         subjectCode: this.nowQuestion.Subject.subjectCode,
-        //         customerInteractionLog: {
-        //             enterpriseCode: this.$route.query.enterpriseCode,
-        //             customerCode: this.gameUser.customerCode,
-        //             customerType: this.gameUser.customerType,
-        //             interactionType: 'memberTalkInGame',
-        //             interactionDesc: '客户发起助威',
-        //             interactionPrimeObject: this.$route.query.gameCode,
-        //             interactionSubObject: this.gateInfo.gameGateCode
-        //         }
-        //     }
-
-        //     util.request({
-        //         method: 'post',
-        //         interface: 'creatCheer',
-        //         data: formData
-        //     }).then(res => {
-        //         if (res.result.success == '1') {
-        //             var pathData = {
-        //                 name: 'game-help',
-        //                 query: {
-        //                     enterpriseCode: this.$route.query.enterpriseCode,
-        //                     eventCode: this.$route.query.eventCode,
-        //                     gameCode: this.$route.query.gameCode,
-        //                     gameGateCode: this.gateInfo.gameGateCode,
-        //                     gameSessionCode: this.$route.query.gameSessionCode,
-        //                     playerCheerCode: res.result.result,
-        //                     agentId: this.$route.query.agentId,
-        //                     appid: this.$route.query.appid,
-        //                     S: this.$route.query.S,
-        //                     sShareTo: this.$route.query.sShareTo,
-        //                     C: this.$route.query.C,
-        //                     cShareTo: this.$route.query.cShareTo,
-        //                     T: this.$route.query.T,
-        //                     tShareTo: this.$route.query.tShareTo,
-        //                     spreadType: this.$route.query.spreadType
-        //                 }
-        //             }
-
-        //             this.$router.push(pathData)
-        //         } else {
-        //             this.$message.error(res.result.message)
-        //         }
-        //     })
-        // }
     }
 }
 </script>

@@ -86,6 +86,7 @@ export default {
     height: 100%;
     overflow: hidden;
     z-index: 101;
+    background: #ffffff;
 
     .gate-bg-img {
         width: 100%;

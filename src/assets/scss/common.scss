@@ -829,12 +829,6 @@ body {
   .ar-title {
     margin-top: 20px;
     padding: 0 30px;
-
-    img {
-      display: block;
-      width: 80%;
-      margin: auto;
-    }
   }
 
   .game-desc-box {
@@ -880,7 +874,7 @@ body {
 
   .logo-box {
     position: absolute;
-    right: 20px;
+    left: 30px;
     bottom: 20px;
     width: 90px;
     height: 20px;
@@ -890,21 +884,19 @@ body {
 }
 
 .gmShare {
-  background-color: #242180;
-}
-
-.gmBodyArea {
-  flex: 1;
-  display: block;
-  padding: 0 20px;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0 20px 20px;
   box-sizing: border-box;
-  overflow: auto;
+  background-color: #3475f0;
 
   .share-box {
     height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
 
     .share-title {
       img {
@@ -917,7 +909,7 @@ body {
     .person-box {
       position: relative;
       flex: 1;
-      background: #2B64E1;
+      background: #2a64e1;
       margin-top: -1px;
       padding-top: 13px;
 
@@ -991,6 +983,16 @@ body {
       }
     }
   } 
+}
+
+  
+
+.gmBodyArea {
+  flex: 1;
+  display: block;
+  padding: 0 20px;
+  box-sizing: border-box;
+  overflow: auto;
 
   .anwser-big-box {
     display: flex;
@@ -1010,6 +1012,10 @@ body {
         width: 16px;
         height: 16px;
       }
+    }
+
+    .anwser-out-box {
+      flex: 1;
     }
   }
 
@@ -1379,13 +1385,27 @@ body {
 }
 
 // 游戏弹窗
+.error-box {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 300;
+  font-size: 16px;
+  color: #999999;
+  margin-top: 120px;
+  text-align: center;
+  background: #ffffff;
+}
+
 .game-hornor-box {
     position: fixed;
     left: 0;
-    height: 0;
+    top: 0;
     width: 100%;
     height: 100%;
-    z-index: 10;
+    z-index: 200;
 
     .black-bg {
         width: 100%;
@@ -1431,11 +1451,36 @@ body {
         display: block;
       }
     }
+
+    .error-img {
+      position: absolute;
+      width: 200px;
+      height: 220px;
+      left: 50%;
+      top: 40%;
+      transform: translate(-50%,-50%);
+      background: #ffffff;
+      border-radius: 5px;
+
+      img {
+        display: block;
+        height: 80px;
+        margin: 30px auto 0;
+      }
+
+      span {
+        color: #000000;
+        font-size: 14px;
+        text-align: center;
+        display: block;
+        margin-top: 30px;
+      }
+    }
 }
 .game-submit-box {
     position: fixed;
     left: 0;
-    height: 0;
+    top: 0;
     width: 100%;
     height: 100%;
     z-index: 10;

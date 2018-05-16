@@ -40,7 +40,7 @@ module.exports = {
 
     proxyTable: {
       '/e2-site-api': {
-        target: 'http://192.168.2.109:8080',
+        target: 'http://192.168.2.114:8080',
         changeOrigin: true,
         pathRewrite: {
           '^/e2-site-api': ''

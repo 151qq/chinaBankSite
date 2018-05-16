@@ -187,7 +187,7 @@ const routers = [
         name: 'game-start',
         component: resolve => require(["../../components/questionGame/gameStart.vue"], resolve),
         meta: {
-          title: '答题游戏'
+          title: '赢华为P20！'
         }
       },
       {
@@ -195,7 +195,7 @@ const routers = [
         name: 'game-play',
         component: resolve => require(["../../components/questionGame/gamePlay.vue"], resolve),
         meta: {
-          title: '答题游戏'
+          title: '赢华为P20！'
         }
       },
       {
@@ -203,7 +203,7 @@ const routers = [
         name: 'game-stop',
         component: resolve => require(["../../components/questionGame/gameStop.vue"], resolve),
         meta: {
-          title: '答题游戏'
+          title: '赢华为P20！'
         }
       },
       {
@@ -211,7 +211,7 @@ const routers = [
         name: 'game-pk',
         component: resolve => require(["../../components/questionGame/gamePk.vue"], resolve),
         meta: {
-          title: '答题游戏'
+          title: '赢华为P20！'
         }
       },
       {
@@ -219,7 +219,7 @@ const routers = [
         name: 'game-help',
         component: resolve => require(["../../components/questionGame/gameHelp.vue"], resolve),
         meta: {
-          title: '答题游戏'
+          title: '赢华为P20！'
         }
       },
       {
@@ -227,7 +227,7 @@ const routers = [
         name: 'game-share',
         component: resolve => require(["../../components/questionGame/gameShare.vue"], resolve),
         meta: {
-          title: '答题游戏'
+          title: '赢华为P20！'
         }
       }
     ]

@@ -3,11 +3,11 @@
         <div class="wx-area-img">
             <img :src="coverImg">
         </div>
-        <div class="avatar-box">
+        <div class="avatar-box" v-if="!!memberInfo.memberWechatImg">
             <div class="img-box">
-                <img :src="memberInfo.memberImage">
+                <img :src="memberInfo.memberWechatImg">
             </div>
-            <div class="name-box">{{memberInfo.memberName}}</div>
+            <div class="name-box">{{memberInfo.memberWechatNickname}}</div>
         </div>
         <section class="weui-cells weui-cells_form">
             <div class="weui-cell">
@@ -68,7 +68,9 @@ export default {
             memberInfo: {
                 memberCode: '',
                 memberMobile: '',
-                memberName: ''
+                memberName: '',
+                memberWechatImg: '',
+                memberWechatNickname: ''
             },
             order: {
                 memberCode: '',

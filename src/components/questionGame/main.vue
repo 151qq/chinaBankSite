@@ -1,6 +1,6 @@
 <template>
     <section>
-        <router-view v-if="isTemplate && isGate"></router-view>
+        <router-view v-if="isTemplate && isGate && isEvent"></router-view>
         <div v-if="isEnterprise" class="null-page">您不能参与游戏！</div>
     </section>
 </template>
@@ -12,6 +12,7 @@ import { mapGetters, mapActions } from 'vuex'
 export default {
     data () {
         return {
+            isEvent: false,
             isTemplate: false,
             isGate: false
         }
@@ -22,6 +23,7 @@ export default {
                 return false
             }
 
+            this.getGameData()
             this.getTemplate()
             this.getGates()
             this.getGameInfo()
@@ -29,7 +31,8 @@ export default {
     },
     computed: {
         ...mapGetters({
-            gameUser: 'getGameUser'
+            gameUser: 'getGameUser',
+            gameData: 'getGameData'
         }),
         isEnterprise () {
             var types = ['enterprise_channel_open', 'enterprise_user_open']
@@ -40,8 +43,26 @@ export default {
         ...mapActions([
             'setGateList',
             'setGameInfo',
-            'setGameTemplate'
+            'setGameTemplate',
+            'setGameData'
         ]),
+        getGameData () {
+            util.request({
+                method: 'get',
+                interface: 'eventInfoGet',
+                data: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    eventCode: this.$route.query.eventCode
+                }
+            }).then(res => {
+                if (res.result.success == '1') {
+                    this.setGameData(res.result.result)
+                    this.isEvent = true
+                } else {
+                    this.$message.error(res.result.message)
+                }
+            })
+        },
         getTemplate () {
             util.request({
                 method: 'get',

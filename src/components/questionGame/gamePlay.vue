@@ -169,8 +169,8 @@
             <div v-if="errorType == '1'" class="error-img">
                 <img src="/static/images/no-score.png">
                 <span>
-                    亲，游戏币不够了<br>
-                    请点击右上角分享获取游戏币
+                    亲，游戏币不足<br>
+                    分享获取游戏币吧
                 </span>
             </div>
 
@@ -178,7 +178,7 @@
                 <img src="/static/images/no-score.png">
                 <span>
                     亲，恭喜通关<br>
-                    分享给好友一起闯关吧
+                    分享好友一起闯关吧
                 </span>
             </div>
 
@@ -225,8 +225,7 @@ export default {
             correctAnwser: [],
             gameSessionCode: '',
             isCanNext: true,
-            pointData: {},
-            gameData: {}
+            pointData: {}
         }
     },
     mixins: [templateMixin],
@@ -243,6 +242,7 @@ export default {
     computed: {
         ...mapGetters({
             gameUser: 'getGameUser',
+            gameData: 'getGameData',
             gameTemplate: 'getGameTemplate',
             gateList: 'getGateList',
             gameInfo: 'getGameInfo'
@@ -255,6 +255,7 @@ export default {
         }
     },
     mounted () {
+        jsSdk.init(this.setShare)
         // 设置当前关卡的序号
         for (var i = 0; i < this.gateList.length; i++) {
             if (this.$route.query.gameGateCode == this.gateList[i].gameGateCode) {
@@ -267,7 +268,6 @@ export default {
         this.defaultGateTime = this.gateInfo.gateTimeLimit
 
         this.getGameSessionCode()
-        this.getGameData()
         this.getQuestions()
         
         setTimeout(() => {
@@ -275,23 +275,6 @@ export default {
         }, 5000)
     },
     methods: {
-        getGameData () {
-            util.request({
-                method: 'get',
-                interface: 'eventInfoGet',
-                data: {
-                    enterpriseCode: this.$route.query.enterpriseCode,
-                    eventCode: this.$route.query.eventCode
-                }
-            }).then(res => {
-                if (res.result.success == '1') {
-                    this.gameData = res.result.result                  
-                    jsSdk.init(this.setShare)
-                } else {
-                    this.$message.error(res.result.message)
-                }
-            })
-        },
         setShare () {
             var queryData = {
                 enterpriseCode: this.$route.query.enterpriseCode,

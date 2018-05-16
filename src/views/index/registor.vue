@@ -83,7 +83,7 @@ export default {
         })
     },
     mounted () {
-        this.coverImg = '/static/images/B' + Math.ceil(Math.random() * 13) + '.jpg'
+        this.getGameData()
         var code = this.$route.query.code
         var scope = this.$route.query.scope
 
@@ -98,6 +98,22 @@ export default {
         }
     },
     methods: {
+        getGameData () {
+            tools.request({
+                method: 'get',
+                interface: 'eventInfoGet',
+                data: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    eventCode: this.$route.query.eventCode
+                }
+            }).then(res => {
+                if (res.result.success == '1') {
+                    this.coverImg = res.result.result.eventPlanCover
+                } else {
+                    this.$message.error(res.result.message)
+                }
+            })
+        },
         corpWechatRedirectUrl (scope) {
             var appid = this.$route.query.appid
             var redirectUri = window.encodeURIComponent(window.location.href)

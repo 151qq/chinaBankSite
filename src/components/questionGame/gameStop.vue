@@ -13,8 +13,8 @@
                         </div>
                         <div :style="personStyle">
                             {{gameUser.memberWechatNickname}}<br>
-                            共获得{{scoreData.sumTotalValue}}分<br>
-                            您已回答{{scoreData.sumSubjectNum}}条题目<br>
+                            答对{{scoreData.passSubjectNum}}条题目<br>
+                            共回答{{scoreData.sumSubjectNum}}条题目
                         </div>
                     </div>
                     <div v-if="isLoad" :style="stopFontStyle">
@@ -137,8 +137,8 @@
             <div v-if="errorType == '1'" class="error-img">
                 <img src="/static/images/no-score.png">
                 <span>
-                    亲，游戏币不够了<br>
-                    请点击右上角分享获取游戏币
+                    亲，游戏币不足<br>
+                    分享获取游戏币吧
                 </span>
             </div>
 
@@ -146,7 +146,7 @@
                 <img src="/static/images/no-score.png">
                 <span>
                     亲，恭喜通关<br>
-                    分享给好友一起闯关吧
+                    分享好友一起闯关吧
                 </span>
             </div>
         </section>
@@ -173,8 +173,7 @@ export default {
             isCanAward: false,
             isCanPlay: true,
             errorType: '',
-            pointData: {},
-            eventData: {}
+            pointData: {}
         }
     },
     mixins: [templateMixin],
@@ -184,6 +183,7 @@ export default {
     computed: {
         ...mapGetters({
             gameUser: 'getGameUser',
+            eventData: 'getGameData',
             gameTemplate: 'getGameTemplate',
             gateList: 'getGateList',
             gameInfo: 'getGameInfo'
@@ -250,7 +250,7 @@ export default {
         }
     },
     mounted () {
-        this.getGameData()
+        jsSdk.init(this.setShare)
         this.getScores()
         this.getGameStop()
 
@@ -267,23 +267,6 @@ export default {
         }, 3000)
     },
     methods: {
-        getGameData () {
-            util.request({
-                method: 'get',
-                interface: 'eventInfoGet',
-                data: {
-                    enterpriseCode: this.$route.query.enterpriseCode,
-                    eventCode: this.$route.query.eventCode
-                }
-            }).then(res => {
-                if (res.result.success == '1') {
-                    this.eventData = res.result.result                  
-                    jsSdk.init(this.setShare)
-                } else {
-                    this.$message.error(res.result.message)
-                }
-            })
-        },
         setShare () {
             var queryData = {
                 enterpriseCode: this.$route.query.enterpriseCode,

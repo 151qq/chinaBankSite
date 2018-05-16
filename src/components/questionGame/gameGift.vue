@@ -11,14 +11,10 @@
                 </div>
                 <div class="person">
                     <div class="name-box">{{scoreData.customerWechatNickname}}</div>
-                    <div class="user-num" v-if="!!scoreData.sumTotalValue && isLoad">
-                        答对{{scoreData.passSubjectNum}}条题目<br>
-                        共回答{{scoreData.sumSubjectNum}}条题目
-                    </div>
-                    <div class="user-num" v-if="!scoreData.sumTotalValue && isLoad">
-                        我在玩答题冲大奖<br>
-                        根本停不下来<br>
-                        你也来试试吧～
+                    <div class="user-num">
+                        恭喜您获奖<br>
+                        我们将在5工作日内安排发货<br>
+                        请您注意查收
                     </div>
                 </div>
 
@@ -40,23 +36,57 @@ export default {
     data () {
         return {
             isLoad: false,
+            gameData: {},
             scoreData: {},
+            gameInfo: {},
             qRcode: ''
         }
     },
     computed: {
         ...mapGetters({
-            gameUser: 'getGameUser',
-            gameData: 'getGameData',
-            gameInfo: 'getGameInfo'
+            gameUser: 'getGameUser'
         })
     },
     mounted () {
         jsSdk.init(this.setShare)
-        // this.getQRcode()
+        this.getGameData()
         this.getScores()
+        this.getGameInfo()
     },
     methods: {
+        getGameData () {
+            util.request({
+                method: 'get',
+                interface: 'eventInfoGet',
+                data: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    eventCode: this.$route.query.eventCode
+                }
+            }).then(res => {
+                if (res.result.success == '1') {
+                    this.gameData = res.result.result
+                } else {
+                    this.$message.error(res.result.message)
+                }
+            })
+        },
+        getGameInfo () {
+            util.request({
+                method: 'get',
+                interface: 'getGameInfoByCode',
+                data: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    eventCode: this.$route.query.eventCode,
+                    gameCode: this.$route.query.gameCode
+                }
+            }).then(res => {
+                if (res.result.success == '1') {
+                    this.gameInfo = res.result.result[0]
+                } else {
+                    this.$message.error(res.result.message)
+                }
+            })
+        },
         setShare () {
             var queryData = {
                 enterpriseCode: this.$route.query.enterpriseCode,
@@ -143,55 +173,18 @@ export default {
                 }
             }
 
-            if (this.$route.query.playerCode == this.gameUser.customerCode) {
-                this.$router.replace(pathData)
-            }
-        },
-        setLog (data) {
-            util.request({
-                method: 'post',
-                interface: 'customerGeneralLog',
-                data: {
-                    enterpriseCode: this.$route.query.enterpriseCode,
-                    customerCode: this.gameUser.customerCode,
-                    customerType: this.gameUser.customerType,
-                    interactionType: data.interactionType,
-                    interactionDesc: data.interactionDesc,
-                    interactionPrimeObject: data.primeObject,
-                    interactionSubObject: data.subObject,
-                    interactionOtherObject: data.otherObject
-                }
-            }).then(res => {})
+            this.$router.replace(pathData)
         },
         getScores () {
             util.request({
                 method: 'get',
                 interface: 'playerscore',
                 data: {
-                    playerCode: this.$route.query.playerCode
+                    playerCode: this.gameUser.customerCode
                 }
             }).then(res => {
                 if (res.result.success == '1') {
                     this.scoreData = res.result.result
-                    this.isLoad = true
-                } else {
-                    this.$message.error(res.result.message)
-                }
-            })
-        },
-        getQRcode () {
-            util.request({
-                method: 'post',
-                interface: 'generateQRcode',
-                data: {
-                    enterpriseCode: this.$route.query.enterpriseCode,
-                    sceneId: 'marketing_ad_type_4',
-                    sceneStr: this.gameUser.customerCode,
-                    appId: this.$route.query.appid
-                }
-            }).then(res => {
-                if (res.result.success == '1') {
-                    this.qRcode = res.result.result
                 } else {
                     this.$message.error(res.result.message)
                 }

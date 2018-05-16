@@ -845,7 +845,14 @@ body {
       padding: 0 30px;
       box-sizing: border-box;
       overflow: hidden;
-      margin-bottom: 160px;
+      margin-bottom: 100px;
+
+      .nav-btn {
+        margin-top: 18px;
+        background: none !important;
+        color: #000000 !important;
+        border: 1px solid #fefefe;
+      }
   }
 
   .play-btn-box {
@@ -881,6 +888,10 @@ body {
     background: url(/static/images/logo.png) no-repeat center;
     background-size: auto 100%;
   }
+}
+
+.weui-btn_primary {
+  background-color: #3475f0;
 }
 
 .gmShare {
@@ -1186,7 +1197,7 @@ body {
 
   .no-gift-box {
     display: block;
-    margin-top: 40px;
+    margin-top: 30px;
 
     img {
       display: block;
@@ -1200,7 +1211,7 @@ body {
       text-align: center;
       font-size: 18px;
       line-height: 30px;
-      margin-top: 10px;
+      margin-top: 20px;
       color: #000000;
     }
 
@@ -1208,8 +1219,9 @@ body {
       display: block;
       text-align: center;
       font-size: 12px;
-      line-height: 17px;
+      line-height: 20px;
       color: #7E7E90;
+      margin-top: 10px;
     }
   }
 }
@@ -1470,7 +1482,7 @@ body {
 
       span {
         color: #000000;
-        font-size: 14px;
+        font-size: 16px;
         text-align: center;
         display: block;
         margin-top: 30px;

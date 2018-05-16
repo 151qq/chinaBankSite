@@ -57,6 +57,7 @@ export default{
         organizeOrderSave: platform + 'organizeOrderInfo/insertOrUpdate.json',
         gamelottery: platform + 'gamelottery/lottery.json',
         playerscore: platform + 'count/playerscore.json',
+        playerPrize: platform + 'product/playerPrize.json',
 
         /**
         * 推广 get

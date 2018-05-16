@@ -229,6 +229,22 @@ const routers = [
         meta: {
           title: '赢华为P20！'
         }
+      },
+      {
+        path: 'gameGift',
+        name: 'game-gift',
+        component: resolve => require(["../../components/questionGame/gameGift.vue"], resolve),
+        meta: {
+          title: '赢华为P20！'
+        }
+      },
+      {
+        path: 'gameHornor',
+        name: 'game-hornor',
+        component: resolve => require(["../../components/questionGame/gameHornor.vue"], resolve),
+        meta: {
+          title: '赢华为P20！'
+        }
       }
     ]
   },

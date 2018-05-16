@@ -27,7 +27,7 @@
                            placeholder="请输入">
                 </div>
             </div>
-            <div class="weui-cell">
+            <!-- <div class="weui-cell">
                 <div class="weui-cell__hd"><label class="weui-label">省</label></div>
                 <div class="weui-cell__bd">
                     <input class="weui-input" v-model="order.orderAddrProvince" placeholder="请输入">
@@ -38,7 +38,7 @@
                 <div class="weui-cell__bd">
                     <input class="weui-input" v-model="order.orderAddrCity" placeholder="请输入">
                 </div>
-            </div>
+            </div> -->
             <div class="weui-cell weui-cell_access no-center">
                 <div class="weui-cell__hd"><label class="weui-label">详细地址</label></div>
                 <div class="weui-cell__bd">
@@ -94,10 +94,7 @@ export default {
         })
     },
     mounted () {
-        this.coverImg = '/static/images/B' + Math.ceil(Math.random() * 13) + '.jpg'
-
-        console.log(this.userInfo, 'userInfo')
-        console.log(this.gameUser, 'gameUser')
+        this.getGameData()
 
         if (this.userInfo.memberInfo && this.userInfo.memberInfo.memberCode) {
             this.memberInfo = Object.assign({}, this.userInfo.memberInfo)
@@ -120,6 +117,22 @@ export default {
         }
     },
     methods: {
+        getGameData () {
+            tools.request({
+                method: 'get',
+                interface: 'eventInfoGet',
+                data: {
+                    enterpriseCode: this.$route.query.enterpriseCode,
+                    eventCode: this.$route.query.eventCode
+                }
+            }).then(res => {
+                if (res.result.success == '1') {
+                    this.coverImg = res.result.result.eventPlanCover
+                } else {
+                    this.$message.error(res.result.message)
+                }
+            })
+        },
         saveOrder () {
             if (this.order.orderReceiver == '') {
                 this.$message.error('请输入接收人')
@@ -131,15 +144,15 @@ export default {
                 return
             }
 
-            if (this.order.orderAddrProvince == '') {
-                this.$message.error('请输入省')
-                return
-            }
+            // if (this.order.orderAddrProvince == '') {
+            //     this.$message.error('请输入省')
+            //     return
+            // }
 
-            if (this.order.orderAddrCity == '') {
-                this.$message.error('请输入市')
-                return
-            }
+            // if (this.order.orderAddrCity == '') {
+            //     this.$message.error('请输入市')
+            //     return
+            // }
 
             if (this.order.orderAddr == '') {
                 this.$message.error('请输入详细地址')
@@ -156,7 +169,7 @@ export default {
             }).then(res => {
                 if (res.result.success == '1') {
                     window.sessionStorage.removeItem('giftCodes')
-                    var targetPage = location.origin + '/questionGame/gameShare' + location.search
+                    var targetPage = location.origin + '/questionGame/gameGift' + location.search
                     this.$router.replace(tools.formDataUrl(targetPage))
                 } else {
                     this.$message.error(res.result.message)

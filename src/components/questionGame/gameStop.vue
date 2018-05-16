@@ -107,11 +107,11 @@
                 </section>
         </section>
 
-        <section class="game-hornor-box" v-if="true">
+        <section class="game-hornor-box" v-if="isCanGet">
             <div class="black-bg" @click.self="isCanGet = false"></div>
             <img class="bg-img" src="/static/images/hornor-bg.png">
 
-            <div v-if="true" class="bg-img" @click="gotoGift">
+            <div v-if="isGift" class="bg-img" @click="gotoGift">
                 <img :src="gameData.GameGateGift.productCover">
                 <span>{{gameData.GameGateGift.productCname}}</span>
                 <p>请3分钟内领奖，否则奖品作废</p>

@@ -220,7 +220,7 @@ export default {
             }).then(res => {})
         },
         mobileChange () {
-            if (this.memberInfo.memberMobile && (/^1[3|4|5|8][0-9]{9}$/).test(this.memberInfo.memberMobile.trim())) {
+            if (this.memberInfo.memberMobile && (/^1[0-9]{10}$/).test(this.memberInfo.memberMobile.trim())) {
                 this.isClick = true
             } else {
                 this.isClick = false
@@ -260,7 +260,7 @@ export default {
                 return
             }
 
-            if (this.memberInfo.memberMobile == '' || !(/^1[3|4|5|8][0-9]{9}$/).test(this.memberInfo.memberMobile.trim())) {
+            if (this.memberInfo.memberMobile == '' || !(/^1[0-9]{10}$/).test(this.memberInfo.memberMobile.trim())) {
                 this.$message.error('请输入11位手机号')
                 return
             }

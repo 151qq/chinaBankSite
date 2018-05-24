@@ -3,7 +3,7 @@
         <div class="font-box">
             <img src="/static/images/timeout-icon.png">
             <span>
-                让网络飞一会儿~
+                游戏太火啦，稍后再来吧～
             </span>
         </div>
     </section>

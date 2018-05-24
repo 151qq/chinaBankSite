@@ -20,7 +20,7 @@ export default{
         html5PageGet: platform + 'html5PageGet.json',
         listPageArea: platform + 'listPageArea.json',
 
-        getTemplates: platform +'templateListPage.json',
+        getTemplates: platform + 'templateListPage.json',
 
         groupStores: platform + 'eventScenarioCouponStore/groupStores.json',
 

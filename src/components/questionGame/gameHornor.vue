@@ -77,7 +77,7 @@ export default {
 
             var link = location.origin + '/questionGame/gameShare?' + queryList.join('&') + '&playerCode=' + this.gameUser.customerCode
             var title = this.gameData.eventPlanTitle.replace(/<.*?>/g, '')
-            var desc = '我在玩答题冲大奖，根本停不下来，你也来试试吧～'
+            var desc = '我在冲关，你也来试试吧！回复“答题”赢大奖！'
 
             var _self = this
 
@@ -88,7 +88,7 @@ export default {
                 imgUrl: _self.gameData.eventPlanCover,
                 success (data) {
                     _self.$message({
-                        message: '恭喜你，分享成功！',
+                        message: '恭喜你，邀请好友成功！',
                         type: 'success'
                     })
                     _self.addPoint()

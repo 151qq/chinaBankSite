@@ -26,6 +26,17 @@ const jsSdk = {
                 timestamp: timestamp
             }
         }).then(res => {
+            // 'addCard',
+            // 'onMenuShareTimeline',
+            // 'onMenuShareAppMessage',
+            // 'onMenuShareQQ',
+            // 'onMenuShareWeibo',
+            // 'onMenuShareQZone',
+            // 'chooseImage',
+            // 'uploadImage',
+            // 'previewImage',
+            // 'getLocalImgData',
+            // 'showMenuItems'
             if (res.result.success == '1') {
                 window.wx.config({
                     debug: false,
@@ -34,21 +45,22 @@ const jsSdk = {
                     nonceStr: nonceStr,
                     signature: res.result.result,
                     jsApiList: [
-                        'addCard',
                         'onMenuShareTimeline',
                         'onMenuShareAppMessage',
-                        'onMenuShareQQ',
-                        'onMenuShareWeibo',
-                        'onMenuShareQZone',
-                        'chooseImage',
-                        'uploadImage',
-                        'previewImage',
-                        'getLocalImgData',
-                        'showMenuItems'
+                        'showMenuItems',
+                        'hideAllNonBaseMenuItem'
                     ]
                 })
                 if (cb) {
                     window.wx.ready(() => {
+                        wx.hideAllNonBaseMenuItem()
+                        wx.showMenuItems({
+                            menuList: [
+                                'menuItem:share:appMessage',
+                                'menuItem:share:timeline'
+                            ]
+                        })
+
                         cb()
                     })
                 }
@@ -124,32 +136,32 @@ const jsSdk = {
         })
 
         // 分享到QQ
-        window.wx.onMenuShareQQ({
-            title: con.title,
-            desc: con.desc ? con.desc : '猜到了开头，却猜不到这结局！',
-            link: con.link + '&sShareTo=N&cShareTo=N&tShareTo=N',
-            imgUrl: con.imgUrl ? con.imgUrl : 'http://site.socialmarketingcloud.com/static/images/logo.png',
-            success () {
-                con.success && con.success()
-            },
-            cancel () {
-                con.cancel && con.cancel()
-            }
-        })
+        // window.wx.onMenuShareQQ({
+        //     title: con.title,
+        //     desc: con.desc ? con.desc : '猜到了开头，却猜不到这结局！',
+        //     link: con.link + '&sShareTo=N&cShareTo=N&tShareTo=N',
+        //     imgUrl: con.imgUrl ? con.imgUrl : 'http://site.socialmarketingcloud.com/static/images/logo.png',
+        //     success () {
+        //         con.success && con.success()
+        //     },
+        //     cancel () {
+        //         con.cancel && con.cancel()
+        //     }
+        // })
 
         // 分享到腾讯微博
-        window.wx.onMenuShareWeibo({
-            title: con.title,
-            desc: con.desc ? con.desc : '猜到了开头，却猜不到这结局！',
-            link: con.link + '&sShareTo=N&cShareTo=N&tShareTo=N',
-            imgUrl: con.imgUrl ? con.imgUrl : 'http://site.socialmarketingcloud.com/static/images/logo.png',
-            success () {
-                con.success && con.success()
-            },
-            cancel () {
-                con.cancel && con.cancel()
-            }
-        })
+        // window.wx.onMenuShareWeibo({
+        //     title: con.title,
+        //     desc: con.desc ? con.desc : '猜到了开头，却猜不到这结局！',
+        //     link: con.link + '&sShareTo=N&cShareTo=N&tShareTo=N',
+        //     imgUrl: con.imgUrl ? con.imgUrl : 'http://site.socialmarketingcloud.com/static/images/logo.png',
+        //     success () {
+        //         con.success && con.success()
+        //     },
+        //     cancel () {
+        //         con.cancel && con.cancel()
+        //     }
+        // })
     },
     // 本地选择图片
     chooseImage (cb) {

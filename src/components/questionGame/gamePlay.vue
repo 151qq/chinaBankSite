@@ -170,22 +170,22 @@
                 <img src="/static/images/no-score.png">
                 <span>
                     亲，游戏币不足<br>
-                    分享获取游戏币吧
+                    邀请好友获取游戏币吧
                 </span>
             </div>
 
             <div v-if="errorType == '2'" class="error-img">
-                <img src="/static/images/no-score.png">
-                <span>
-                    亲，恭喜通关<br>
-                    分享好友一起闯关吧
+                <img src="/static/images/all-gate.png">
+                <span class="all-gate">
+                    Wow～你的智商已冲破天际<br>
+                    只能邀请伙伴赢大奖了～
                 </span>
             </div>
 
             <div v-if="errorType == '3'" class="error-img">
                 <img src="/static/images/no-score.png">
                 <span>
-                    亲，系统出现故障<br>
+                    亲，系统繁忙<br>
                     重新试一次吧
                 </span>
             </div>
@@ -299,7 +299,7 @@ export default {
 
             var link = location.origin + '/questionGame/gameShare?' + queryList.join('&') + '&playerCode=' + this.gameUser.customerCode
             var title = this.gameData.eventPlanTitle.replace(/<.*?>/g, '')
-            var desc = '我在玩答题冲大奖，根本停不下来，你也来试试吧～'
+            var desc = '我在冲关，你也来试试吧！回复“答题”赢大奖！'
 
             var _self = this
 
@@ -310,7 +310,7 @@ export default {
                 imgUrl: _self.gameData.eventPlanCover,
                 success (data) {
                     _self.$message({
-                        message: '恭喜你，分享成功！',
+                        message: '恭喜你，邀请好友成功！',
                         type: 'success'
                     })
                     _self.addPoint()

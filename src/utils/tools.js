@@ -136,7 +136,7 @@ const tools = {
      * */
 
     // 设置超时时间
-    axios.defaults.timeout =  5000;
+    axios.defaults.timeout =  30000;
 
     return new Promise((resolve, reject) => {
 

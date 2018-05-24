@@ -13,15 +13,19 @@
                     <div class="name-box">{{scoreData.customerWechatNickname}}</div>
                     <div class="user-num">
                         恭喜您获奖<br>
-                        我们将在5工作日内安排发货<br>
-                        请您注意查收
+                        我们将在5工作日内安排发货
                     </div>
                 </div>
 
                 <div class="ewm-box">
-                    <img src="/static/images/ewm-icon.jpg">
+                    <img class="ewm-icon" src="/static/images/ewm-icon.jpg">
                     <img src="/static/images/figer-icon.png">
-                    <span class="ewm-mess">长按二维码进入游戏</span>
+                    <div class="ewm-mess">
+                        长按二维码关注，回复“答题”参与游戏
+                    </div>
+                    <div class="ewm-mess">
+                        点击右上角<span>···</span>邀请好友一起玩
+                    </div>
                 </div>
             </div>
         </div>
@@ -111,7 +115,7 @@ export default {
 
             var link = location.origin + '/questionGame/gameShare?' + queryList.join('&') + '&playerCode=' + this.gameUser.customerCode
             var title = this.gameData.eventPlanTitle.replace(/<.*?>/g, '')
-            var desc = '我在玩答题冲大奖，根本停不下来，你也来试试吧～'
+            var desc = '我在冲关，你也来试试吧！回复“答题”赢大奖！'
 
             var _self = this
 
@@ -122,7 +126,7 @@ export default {
                 imgUrl: _self.gameData.eventPlanCover,
                 success (data) {
                     _self.$message({
-                        message: '恭喜你，分享成功！',
+                        message: '恭喜你，邀请好友成功！',
                         type: 'success'
                     })
                     _self.addPoint()

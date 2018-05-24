@@ -5,82 +5,24 @@
             <span>结果计算中......</span>
         </section>
         
-        <section class="gmBigBox">
-                <div class="person-message-box" :style="stopPersonBgStyle">
-                    <div class="person-box">
-                        <div class="attar-box">
-                            <img :src="gameUser.memberWechatImg">
-                        </div>
-                        <div :style="personStyle">
-                            {{gameUser.memberWechatNickname}}<br>
-                            答对{{scoreData.passSubjectNum}}条题目<br>
-                            共回答{{scoreData.sumSubjectNum}}条题目
-                        </div>
-                    </div>
-                    <div v-if="isLoad" :style="stopFontStyle">
-                        {{gameData.isPass == '1' ? '成功通关' : '通关失败'}}
-                    </div>
+        <section class="gmStopBox">
+                <div class="attar-box">
+                    <img :src="gameUser.memberWechatImg">
+                </div>
+                <div class="name-box">{{gameUser.memberWechatNickname}}</div>
+                <div class="mess-box" v-if="isLoad">
+                    {{gameData.isPass == '1' ? '恭喜您 成功通关' : '很遗憾 通关失败'}}
+                </div>
+                <div class="result-box">
+                    答对{{scoreData.passSubjectNum}}条题目<br>
+                    共回答{{scoreData.sumSubjectNum}}条题目
                 </div>
 
-                <section class="gmBodyArea" v-if="isLoad">
-                    <div class="money-box">
-                        <p>邀请好友获得更多游戏币</p>
-                    </div>
-                    <template v-if="isNull">
-                        <a class="no-gift-box">
-                            <img src="/static/images/no-hornor.png">
-                            <span class="btn-font">
-                                非常遗憾，再接再厉！
-                            </span>
-                            <span class="mess-font">
-                                关注“工银融e行”微信公众号<br>
-                                看攻略<br>
-                                只能帮到这儿了...
-                            </span>
-                        </a>
-                    </template>
-                    
-                    <template v-if="!isNull">
-                        <template v-if="isPass">
-                            <a class="click-box" v-if="awardStatus === ''">
-                                <img v-if="!isClick" @click="getRewardMess" src="/static/images/gift-switch.jpg">
-                                <span class="btn-font" v-if="!isClick" @click="getRewardMess">
-                                    点击摇奖
-                                </span>
-                                <img v-if="isClick" src="/static/images/gift-door.gif">
-                            </a>
-
-                            <a class="click-box" v-if="awardStatus === '1'">
-                                <img src="/static/images/gift-switch.jpg" @click="isCanGet = true">
-                                <span class="btn-font" @click="isCanGet = true">
-                                    立即兑奖
-                                </span>
-                            </a>
-
-                            <a class="no-gift-box" v-if="awardStatus === '0'">
-                                <img src="/static/images/no-score.png">
-                                <span class="btn-font">
-                                    很遗憾，未中奖！
-                                </span>
-                                <span class="mess-font">
-                                    快去继续答题，获得更多抽奖机会吧！
-                                </span>
-                            </a>
-
-                            <a class="no-gift-box" v-if="awardStatus === '2'">
-                                <img src="/static/images/no-score.png">
-                                <span class="btn-font">
-                                    您已经参与过抽奖！
-                                </span>
-                            </a>
-                        </template>
-                    </template>
-                </section>
-                <section class="bottom-btn-box" v-if="isLoad">
-                    <a :style="gmStopBtn" @click="goToPlay">
+                <section class="stop-btn-box" v-if="isLoad">
+                    <a class="play-btn" @click="goToPlay">
                         {{gameData.isPass == '1' ? gameTemplate.stopBtnOneFont : '再来一次'}}
                     </a>
-                    <router-link :style="gmStopBtn"
+                    <router-link class="share-btn"
                                     :to="{
                                         name: 'game-share',
                                         query: {
@@ -107,6 +49,38 @@
                 </section>
         </section>
 
+        <section class="game-hornor-box" v-if="isGetHonor">
+            <div class="black-bg"></div>
+
+            <template v-if="!isClick && gateIndex !== ''">
+                <img class="bg-img" @click="getRewardMess" src="/static/images/gate-door.png">
+
+                <span class="btn-font-hornor" @click="getRewardMess">
+                    点击<br>
+                    抽奖
+                </span>
+
+                <span class="hornor-mess" @click="getRewardMess">
+                    抽奖前请不要离开页面哟～
+                </span>
+            </template>
+
+            <template v-if="isClick && gateIndex !== ''">
+                <img class="bg-img" src="/static/images/gate-door.png">
+
+                <span class="btn-font-load">
+                    抽奖中<br>
+                    ...
+                </span>
+
+                <span class="load-box">
+                    为避免错失中奖机会<br>
+                    请您不要关闭页面<br>
+                    或退出程序～
+                </span>
+            </template>
+        </section>
+
         <section class="game-hornor-box" v-if="isCanGet">
             <div class="black-bg" @click.self="isCanGet = false"></div>
             <img class="bg-img" src="/static/images/hornor-bg.png">
@@ -122,14 +96,28 @@
                 <span>{{gameData.GameGateRewardCoupon.couponTitle}}</span>
                 <p>请3分钟内领奖，否则奖品作废</p>
             </div>
-            <!-- <a class="honor-box" v-if="isCash">
-                <span class="money-num">¥ {{gameData.GameGateRewardCash}}</span>
-                <span class="btn-font">
-                    <img src="../../assets/images/ticket-icon.png">
-                    领取奖励
-                </span>
-            </a> -->
         </section>
+
+        <section class="game-hornor-box" v-if="isNoHornor">
+            <div class="black-bg" @click.self="isNoHornor = false"></div>
+            <img class="bg-img" src="/static/images/hornor-bg1.png">
+
+            <div v-if="awardStatus === '0'" class="bg-img">
+                <img src="/static/images/no-score.png">
+                <span class="scroe-box">
+                    很遗憾您未中奖<br>
+                    再接再厉
+                </span>
+            </div>
+
+            <div v-if="awardStatus === '2'" class="bg-img">
+                <img src="/static/images/no-score.png">
+                <span class="has-get">
+                    您已经参与过抽奖！
+                </span>
+            </div>
+        </section>
+
 
         <section class="game-hornor-box" v-if="!isCanPlay">
             <div class="black-bg" @click.self="isCanPlay = true"></div>
@@ -138,15 +126,15 @@
                 <img src="/static/images/no-score.png">
                 <span>
                     亲，游戏币不足<br>
-                    分享获取游戏币吧
+                    邀请好友获取游戏币吧
                 </span>
             </div>
 
             <div v-if="errorType == '2'" class="error-img">
-                <img src="/static/images/no-score.png">
-                <span>
-                    亲，恭喜通关<br>
-                    分享好友一起闯关吧
+                <img src="/static/images/all-gate.png">
+                <span class="all-gate">
+                    Wow～你的智商已冲破天际<br>
+                    只能邀请伙伴赢大奖了～
                 </span>
             </div>
         </section>
@@ -173,7 +161,10 @@ export default {
             isCanAward: false,
             isCanPlay: true,
             errorType: '',
-            pointData: {}
+            pointData: {},
+            isGetHonor: false,
+            gateIndex: '',
+            isNoHornor: false
         }
     },
     mixins: [templateMixin],
@@ -258,12 +249,17 @@ export default {
         for (var i = 0; i < this.gateList.length; i++) {
             if (this.$route.query.gameGateCode == this.gateList[i].gameGateCode) {
                 this.gateInfo = this.gateList[i]
+                this.gateIndex = i
                 break
             }
         }
 
         setTimeout(() => {
             this.isAnimate = false
+
+            if (this.gameData.isPass == '1') {
+                this.isGetHonor = true
+            }
         }, 3000)
     },
     methods: {
@@ -291,7 +287,7 @@ export default {
 
             var link = location.origin + '/questionGame/gameShare?' + queryList.join('&') + '&playerCode=' + this.gameUser.customerCode
             var title = this.eventData.eventPlanTitle.replace(/<.*?>/g, '')
-            var desc = '我在玩答题冲大奖，根本停不下来，你也来试试吧～'
+            var desc = '我在冲关，你也来试试吧！回复“答题”赢大奖！'
 
             var _self = this
 
@@ -302,7 +298,7 @@ export default {
                 imgUrl: _self.eventData.eventPlanCover,
                 success (data) {
                     _self.$message({
-                        message: '恭喜你，分享成功！',
+                        message: '恭喜你，邀请好友成功！',
                         type: 'success'
                     })
                     _self.addPoint()
@@ -449,6 +445,10 @@ export default {
                     this.getPointData()
 
                     if (this.gameData.isPass == '1') {
+                        if (!this.isAnimate) {
+                            this.isGetHonor = true
+                        }
+
                         // 通过一关
                         var logData = {
                             interactionType: 'memberPassGameGate',
@@ -495,6 +495,16 @@ export default {
         },
         getRewardMess () {
             this.isClick = true
+
+            setTimeout(() => {
+                if (this.isClick) {
+                    this.isGetHonor = false
+                    this.awardStatus = '0'
+                    this.isNoHornor = true
+                    this.isClick = false
+                }
+            }, 20000)
+
             var formData = {
                 enterpriseCode: this.$route.query.enterpriseCode,
                 interactionPrimeObject: this.$route.query.eventCode,
@@ -519,12 +529,17 @@ export default {
                 data: formData
             }).then(res => {
                 if (res.result.success == '1') {
-                    setTimeout(() => {
+                    if (this.isClick) {
+                        this.isGetHonor = false
+                        this.isClick = false
                         this.awardStatus = res.result.result
                         if (res.result.result === '1') {
                             this.isCanGet = true
                         }
-                    }, 3000)
+                        if (res.result.result === '0' || res.result.result === '2') {
+                            this.isNoHornor = true
+                        }
+                    }
                 } else {
                     this.$message.error(res.result.message)
                 }
